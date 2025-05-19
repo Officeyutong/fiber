@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-#[tokio::test]
+#[crate::test]
 async fn test_rpc_basic() {
     let (nodes, _channels) = create_n_nodes_network_with_params(
         &[
@@ -102,7 +102,7 @@ async fn test_rpc_basic() {
     assert_eq!(get_invoice_res.invoice.payment_hash(), invoice_payment_hash);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_rpc_list_peers() {
     let (nodes, _channels) = create_n_nodes_network_with_params(
         &[

@@ -35,8 +35,9 @@ use crate::{
 };
 use crate::{create_invalid_ecdsa_signature, now_timestamp_as_millis_u64, ChannelTestContext};
 
-use super::test_utils::{get_test_root_actor, TempDir};
-
+use super::test_utils::get_test_root_actor;
+#[cfg(not(target_arch = "wasm32"))]
+use super::test_utils::TempDir;
 struct GossipTestingContext {
     chain_actor: ActorRef<CkbChainMessage>,
     gossip_actor: ActorRef<GossipActorMessage>,
@@ -174,7 +175,7 @@ impl Actor for Subscriber {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_save_gossip_message() {
     let context = GossipTestingContext::new().await;
     let (_, announcement) = gen_rand_node_announcement();
@@ -187,7 +188,7 @@ async fn test_save_gossip_message() {
     assert_eq!(new_announcement, announcement);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_unconfirmed_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -201,7 +202,7 @@ async fn test_saving_unconfirmed_channel_announcement() {
     assert_eq!(new_announcement, None);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_confirmed_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -217,7 +218,7 @@ async fn test_saving_confirmed_channel_announcement() {
     assert_ne!(new_announcement, None);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_invalid_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -249,7 +250,7 @@ async fn test_saving_invalid_channel_announcement() {
     assert_eq!(new_announcement, None);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_channel_update_after_saving_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -290,7 +291,7 @@ async fn test_saving_channel_update_after_saving_channel_announcement() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_channel_update_before_saving_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -340,7 +341,7 @@ async fn test_saving_channel_update_before_saving_channel_announcement() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_invalid_channel_update() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -382,7 +383,7 @@ async fn test_saving_invalid_channel_update() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_channel_update_independency() {
     async fn test(node1_has_invalid_signature: bool, node2_has_invalid_signature: bool) {
         let context = GossipTestingContext::new().await;
@@ -448,7 +449,7 @@ async fn test_saving_channel_update_independency() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_channel_update_with_invalid_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -508,7 +509,7 @@ async fn test_saving_channel_update_with_invalid_channel_announcement() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_save_outdated_gossip_message() {
     let context = GossipTestingContext::new().await;
     let (sk, old_announcement) = gen_rand_node_announcement();
@@ -532,7 +533,7 @@ async fn test_save_outdated_gossip_message() {
     assert_eq!(announcement_in_store, new_announcement);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_basic_subscription() {
     let context = GossipTestingContext::new().await;
     let messages = context.subscribe(Default::default()).await;
@@ -547,7 +548,7 @@ async fn test_gossip_store_updates_basic_subscription() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_repeated_saving() {
     let context = GossipTestingContext::new().await;
     let messages = context.subscribe(Default::default()).await;
@@ -564,7 +565,7 @@ async fn test_gossip_store_updates_repeated_saving() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_saving_multiple_messages() {
     let context = GossipTestingContext::new().await;
     let messages = context.subscribe(Default::default()).await;
@@ -585,7 +586,7 @@ async fn test_gossip_store_updates_saving_multiple_messages() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_saving_outdated_message() {
     let context = GossipTestingContext::new().await;
     let messages = context.subscribe(Default::default()).await;
@@ -632,7 +633,7 @@ async fn check_two_node_announcements_with_one_invalid(
 }
 
 // Old message is invalid, new message is valid
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_saving_invalid_message_1() {
     let (sk, mut old_announcement) = gen_rand_node_announcement();
     old_announcement.signature = Some(create_invalid_ecdsa_signature());
@@ -644,7 +645,7 @@ async fn test_gossip_store_updates_saving_invalid_message_1() {
 }
 
 // New message is invalid, old message is valid
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_saving_invalid_message_2() {
     let (sk, old_announcement) = gen_rand_node_announcement();
     // Make sure new announcement has a different timestamp
@@ -656,7 +657,7 @@ async fn test_gossip_store_updates_saving_invalid_message_2() {
 }
 
 // Both messages have the same timestamp, but there is one invalid message
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_updates_saving_invalid_message_3() {
     let (_, old_announcement) = gen_rand_node_announcement();
     let mut new_announcement = old_announcement.clone();
@@ -665,7 +666,7 @@ async fn test_gossip_store_updates_saving_invalid_message_3() {
     check_two_node_announcements_with_one_invalid(old_announcement, new_announcement).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_our_own_channel_gossip_message_propagated() {
     crate::fiber::tests::test_utils::init_tracing();
     let node_a_funding_amount = 100000000000;
@@ -698,7 +699,7 @@ async fn test_our_own_channel_gossip_message_propagated() {
 }
 
 // We may need to run this test multiple times to check if the gossip messages are really propagated.
-#[tokio::test]
+#[crate::test]
 async fn test_never_miss_any_message() {
     let (_, announcement) = gen_rand_node_announcement();
     let context = GossipTestingContext::new().await;
@@ -713,7 +714,7 @@ async fn test_never_miss_any_message() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_prune_all_messages() {
     let context = GossipTestingContext::new().await;
     let num_messages = 1000usize;
@@ -754,7 +755,7 @@ async fn test_gossip_store_prune_all_messages() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_prune_channel_announcement() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;
@@ -814,7 +815,7 @@ async fn test_gossip_store_prune_channel_announcement() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_gossip_store_prune_channel_update() {
     let context = GossipTestingContext::new().await;
     let channel_context = ChannelTestContext::gen().await;

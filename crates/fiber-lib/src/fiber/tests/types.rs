@@ -30,7 +30,7 @@ use tentacle::multiaddr::MultiAddr;
 
 use std::str::FromStr;
 
-#[test]
+#[crate::test]
 fn test_serde_public_key() {
     let sk = SecretKey::from_slice(&[42; 32]).unwrap();
     let public_key = Pubkey::from(sk.public_key(secp256k1_instance()));
@@ -43,7 +43,7 @@ fn test_serde_public_key() {
     assert_eq!(pubkey, public_key)
 }
 
-#[test]
+#[crate::test]
 fn test_serde_cursor_node_announcement() {
     let now = 0u64;
     let node_id = gen_rand_fiber_public_key();
@@ -53,7 +53,7 @@ fn test_serde_cursor_node_announcement() {
     assert_eq!(cursor, unmoleculed_cursor);
 }
 
-#[test]
+#[crate::test]
 fn test_serde_cursor_channel_announcement() {
     let now = 0u64;
     let channel_announcement_id = gen_rand_channel_outpoint();
@@ -66,7 +66,7 @@ fn test_serde_cursor_channel_announcement() {
     assert_eq!(cursor, unmoleculed_cursor);
 }
 
-#[test]
+#[crate::test]
 fn test_serde_cursor_channel_update() {
     let now = 0u64;
     let channel_update_id = gen_rand_channel_outpoint();
@@ -76,7 +76,7 @@ fn test_serde_cursor_channel_update() {
     assert_eq!(cursor, unmoleculed_cursor);
 }
 
-#[test]
+#[crate::test]
 fn test_cursor_timestamp() {
     let node_id = gen_rand_fiber_public_key();
     // 255 is larger than 256 in little endian.
@@ -86,7 +86,7 @@ fn test_cursor_timestamp() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_cursor_types() {
     let node_id = gen_rand_fiber_public_key();
     let channel_outpoint = gen_rand_channel_outpoint();
@@ -113,7 +113,7 @@ fn test_cursor_types() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_add_tlc_serialization() {
     let add_tlc = AddTlc {
         channel_id: [42; 32].into(),
@@ -129,7 +129,7 @@ fn test_add_tlc_serialization() {
     assert_eq!(add_tlc, add_tlc2);
 }
 
-#[test]
+#[crate::test]
 fn test_peeled_onion_packet() {
     let secp = Secp256k1::new();
     let keys: Vec<Privkey> = std::iter::repeat_with(gen_rand_fiber_private_key)
@@ -189,7 +189,7 @@ fn test_peeled_onion_packet() {
     assert!(packet.is_last());
 }
 
-#[test]
+#[crate::test]
 fn test_tlc_fail_error() {
     let tlc_fail_detail = TlcErr::new(TlcErrorCode::InvalidOnionVersion);
     assert!(!tlc_fail_detail.error_code.is_node());
@@ -214,7 +214,7 @@ fn test_tlc_fail_error() {
     assert_eq!(error_code, convert);
 }
 
-#[test]
+#[crate::test]
 fn test_tlc_err_packet_encryption() {
     // Setup
     let secp = Secp256k1::new();
@@ -253,7 +253,7 @@ fn test_tlc_err_packet_encryption() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_tlc_error_code() {
     let code = TlcErrorCode::PermanentNodeFailure;
     let str = code.as_ref().to_string();
@@ -266,7 +266,7 @@ fn test_tlc_error_code() {
     assert_eq!(code, TlcErrorCode::IncorrectOrUnknownPaymentDetails);
 }
 
-#[test]
+#[crate::test]
 fn test_create_and_verify_node_announcement() {
     let privkey = gen_rand_fiber_private_key();
     let node_announcement = NodeAnnouncement::new(
@@ -283,7 +283,7 @@ fn test_create_and_verify_node_announcement() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_serde_node_announcement() {
     let privkey = gen_rand_fiber_private_key();
     let node_announcement = NodeAnnouncement::new(
@@ -311,7 +311,7 @@ fn test_serde_node_announcement() {
 // There was a bug in the node announcement verification logic which uses local udt whitelist to
 // verify the signature. This bug causes different nodes to have different results on signature verification.
 // We add a few hard coded node announcements with different udt_cfg_infos to ensure the verification logic is correct.
-#[test]
+#[crate::test]
 fn test_verify_hard_coded_node_announcement() {
     // hard code node announcement 1
     fn node1() -> NodeAnnouncement {
@@ -457,7 +457,7 @@ fn test_verify_hard_coded_node_announcement() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_custom_records_serialize_deserialize() {
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Custom {
@@ -487,7 +487,7 @@ fn test_custom_records_serialize_deserialize() {
     let _deserialized: Custom = bincode::deserialize(&bincode_serialize).expect("deserialize");
 }
 
-#[test]
+#[crate::test]
 fn test_verify_payment_hop_data() {
     let hop_data = PaymentHopData {
         amount: 1000,
@@ -519,7 +519,7 @@ fn test_verify_payment_hop_data() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_convert_udt_arg_info() {
     let udt_arg_info = UdtArgInfo {
         name: "SIMPLE_UDT".to_string(),
@@ -555,7 +555,7 @@ fn test_convert_udt_arg_info() {
     assert_eq!("", udt_arg_info_modified.name);
 }
 
-#[test]
+#[crate::test]
 fn test_convert_payment_hop_data() {
     let sk = SecretKey::from_slice(&[42; 32]).unwrap();
     let public_key = Pubkey::from(sk.public_key(secp256k1_instance()));

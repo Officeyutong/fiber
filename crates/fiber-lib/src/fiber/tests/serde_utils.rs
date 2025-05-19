@@ -21,7 +21,7 @@ struct Foo {
     bar_16: u16,
 }
 
-#[test]
+#[crate::test]
 fn test_serde_utils() {
     let foo = Foo {
         slice: [1, 2, 3, 4],

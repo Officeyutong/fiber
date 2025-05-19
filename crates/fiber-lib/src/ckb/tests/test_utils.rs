@@ -706,7 +706,7 @@ pub fn complete_commitment_tx(commitment_tx: &TransactionView) -> TransactionVie
         .build()
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_set_and_get_block_timestamp() {
     let now = now_timestamp_as_millis_u64();
     set_next_block_timestamp(now).await;

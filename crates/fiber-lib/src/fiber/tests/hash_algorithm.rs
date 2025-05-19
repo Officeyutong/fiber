@@ -1,6 +1,6 @@
 use crate::fiber::hash_algorithm::HashAlgorithm;
 
-#[test]
+#[crate::test]
 fn test_hash_algorithm_serialization_sha256() {
     let algorithm = HashAlgorithm::Sha256;
     let serialized = serde_json::to_string(&algorithm).expect("hash algorithm to json");
@@ -10,7 +10,7 @@ fn test_hash_algorithm_serialization_sha256() {
     assert_eq!(deserialized, algorithm);
 }
 
-#[test]
+#[crate::test]
 fn test_hash_algorithm_serialization_ckb_hash() {
     let algorithm = HashAlgorithm::CkbHash;
     let serialized = serde_json::to_string(&algorithm).expect("hash algorithm to json");

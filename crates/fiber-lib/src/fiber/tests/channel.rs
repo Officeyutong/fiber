@@ -37,7 +37,7 @@ use std::collections::HashSet;
 use std::time::Duration;
 use tracing::debug;
 
-#[test]
+#[crate::test]
 fn test_per_commitment_point_and_secret_consistency() {
     init_tracing();
 
@@ -48,7 +48,7 @@ fn test_per_commitment_point_and_secret_consistency() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_derive_private_and_public_tlc_keys() {
     let privkey = Privkey::from(&[1; 32]);
     let per_commitment_point = Privkey::from(&[2; 32]).pubkey();
@@ -57,7 +57,7 @@ fn test_derive_private_and_public_tlc_keys() {
     assert_eq!(derived_privkey.pubkey(), derived_pubkey);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_open_channel_to_peer() {
     let [node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -97,7 +97,7 @@ async fn test_open_channel_to_peer() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_open_and_accept_channel() {
     let [node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -157,7 +157,7 @@ async fn test_open_and_accept_channel() {
         .expect("accept channel success");
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_create_private_channel() {
     init_tracing();
 
@@ -172,7 +172,7 @@ async fn test_create_private_channel() {
     .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_create_channel_with_remote_tlc_info() {
     async fn test(public: bool) {
         let node_a_funding_amount = 100000000000;
@@ -204,7 +204,7 @@ async fn test_create_channel_with_remote_tlc_info() {
     test(false).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_create_public_channel() {
     init_tracing();
 
@@ -270,12 +270,12 @@ async fn do_test_owned_channel_saved_to_the_owner_graph(public: bool) {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_public_channel_saved_to_the_owner_graph() {
     do_test_owned_channel_saved_to_the_owner_graph(true).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_private_channel_saved_to_the_owner_graph() {
     do_test_owned_channel_saved_to_the_owner_graph(false).await;
 }
@@ -334,12 +334,12 @@ async fn do_test_owned_channel_removed_from_graph_on_disconnected(public: bool) 
     assert_eq!(node2_channels, vec![]);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_channel_removed_from_graph_on_disconnected_public_channel() {
     do_test_owned_channel_removed_from_graph_on_disconnected(true).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_channel_removed_from_graph_on_disconnected_private_channel() {
     do_test_owned_channel_removed_from_graph_on_disconnected(false).await;
 }
@@ -431,12 +431,12 @@ async fn do_test_owned_channel_saved_to_graph_on_reconnected(public: bool) {
     assert_ne!(node2_channels, vec![]);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_channel_saved_to_graph_on_reconnected_public_channel() {
     do_test_owned_channel_saved_to_graph_on_reconnected(true).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_owned_channel_saved_to_graph_on_reconnected_private_channel() {
     do_test_owned_channel_saved_to_graph_on_reconnected(false).await;
 }
@@ -588,17 +588,17 @@ async fn do_test_update_graph_balance_after_payment(public: bool) {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_update_graph_balance_after_payment_public_channel() {
     do_test_update_graph_balance_after_payment(true).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_update_graph_balance_after_payment_private_channel() {
     do_test_update_graph_balance_after_payment(false).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_public_channel_saved_to_the_other_nodes_graph() {
     init_tracing();
 
@@ -647,7 +647,7 @@ async fn test_public_channel_saved_to_the_other_nodes_graph() {
     assert!(node_pubkeys.contains(&channel.node2()));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_public_channel_with_unconfirmed_funding_tx() {
     init_tracing();
 
@@ -675,7 +675,7 @@ async fn test_public_channel_with_unconfirmed_funding_tx() {
     assert_eq!(channels.len(), 0);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_normal_keysend_workflow() {
     init_tracing();
 
@@ -756,7 +756,7 @@ async fn test_network_send_payment_normal_keysend_workflow() {
     assert!(node_a.get_payment_preimage(&payment_hash).is_none());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_send_each_other() {
     init_tracing();
 
@@ -842,7 +842,7 @@ async fn test_network_send_payment_send_each_other() {
     assert_eq!(node_b_new_balance, node_b_old_balance + 1);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_more_send_each_other() {
     init_tracing();
 
@@ -955,7 +955,7 @@ async fn test_network_send_payment_more_send_each_other() {
     assert_eq!(node_b_new_balance, node_b_old_balance);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_send_with_ack() {
     init_tracing();
 
@@ -1011,7 +1011,7 @@ async fn test_network_send_payment_send_with_ack() {
     node_a.wait_until_success(payment_hash2).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_previous_tlc_error() {
     init_tracing();
 
@@ -1124,7 +1124,7 @@ async fn test_network_send_previous_tlc_error() {
     node_a.wait_until_success(payment_hash).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
     init_tracing();
 
@@ -1237,7 +1237,7 @@ async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
     node_a.wait_until_success(payment_hash).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_keysend_with_payment_hash() {
     init_tracing();
 
@@ -1273,7 +1273,7 @@ async fn test_network_send_payment_keysend_with_payment_hash() {
         .contains("keysend payment should not have payment_hash"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_final_incorrect_hash() {
     init_tracing();
 
@@ -1334,7 +1334,7 @@ async fn test_network_send_payment_final_incorrect_hash() {
     assert_eq!(new_balance_node_b - node_b_local_balance, 0);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_target_not_found() {
     init_tracing();
 
@@ -1364,7 +1364,7 @@ async fn test_network_send_payment_target_not_found() {
     assert!(res.err().unwrap().contains("no path found"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_amount_is_too_large() {
     init_tracing();
 
@@ -1398,7 +1398,7 @@ async fn test_network_send_payment_amount_is_too_large() {
 }
 
 // FIXME: this is the case send_payment with direct channels, we should handle this case
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_with_dry_run() {
     init_tracing();
 
@@ -1448,7 +1448,7 @@ async fn test_network_send_payment_with_dry_run() {
     assert!(res.is_err());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_3_nodes() {
     init_tracing();
 
@@ -1513,7 +1513,7 @@ async fn test_send_payment_with_3_nodes() {
     assert_eq!(node_c_got, sent_amount);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_rev_3_nodes() {
     init_tracing();
 
@@ -1579,7 +1579,7 @@ async fn test_send_payment_with_rev_3_nodes() {
     assert_eq!(node_a_got, sent_amount);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_max_nodes() {
     init_tracing();
 
@@ -1637,7 +1637,7 @@ async fn test_send_payment_with_max_nodes() {
     assert_eq!(receiver_received, sent_amount);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_3_nodes_overflow() {
     // Fix issue #361
 
@@ -1672,7 +1672,7 @@ async fn test_send_payment_with_3_nodes_overflow() {
         .contains("The payment amount (21267647932558653966460912964485513215) should be less than 1844674407370955161"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_fail_with_3_nodes_invalid_hash() {
     init_tracing();
 
@@ -1735,7 +1735,7 @@ async fn test_send_payment_fail_with_3_nodes_invalid_hash() {
     assert_eq!(node_c_got, 0);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_fail_with_3_nodes_final_tlc_expiry_delta() {
     // Fix issue #367, we should check the final_tlc_expiry_delta
 
@@ -1804,7 +1804,7 @@ async fn test_send_payment_fail_with_3_nodes_final_tlc_expiry_delta() {
     assert!(res.unwrap_err().contains("no path found"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_fail_with_3_nodes_dry_run_fee() {
     // Fix issue #360, dryrun option should get correct fee
 
@@ -1909,7 +1909,7 @@ async fn test_send_payment_fail_with_3_nodes_dry_run_fee() {
     assert!(res.is_err());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_dry_run_can_still_query() {
     init_tracing();
 
@@ -1977,7 +1977,7 @@ async fn test_network_send_payment_dry_run_can_still_query() {
     assert!(res.is_ok());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
     init_tracing();
 
@@ -2035,7 +2035,7 @@ async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
     assert!(res.is_ok());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_stash_broadcast_messages() {
     init_tracing();
 
@@ -2238,12 +2238,12 @@ async fn do_test_channel_commitment_tx_after_add_tlc(algorithm: HashAlgorithm) {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_channel_commitment_tx_after_add_tlc_ckbhash() {
     do_test_channel_commitment_tx_after_add_tlc(HashAlgorithm::CkbHash).await
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_channel_commitment_tx_after_add_tlc_sha256() {
     do_test_channel_commitment_tx_after_add_tlc(HashAlgorithm::Sha256).await
 }
@@ -2367,7 +2367,7 @@ async fn do_test_remove_tlc_with_wrong_hash_algorithm(
     assert!(remove_tlc_result.is_err());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_channel_remote_commitment_error() {
     // https://github.com/nervosnetwork/fiber/issues/447
     let node_a_funding_amount = 100000000000;
@@ -2461,7 +2461,7 @@ async fn do_test_channel_remote_commitment_error() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_network_add_two_tlcs_remove_one() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 100000000000;
@@ -2619,7 +2619,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     assert_eq!(new_b_balance, old_b_balance + 3000);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_remove_tlc_with_expiry_error() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -2679,7 +2679,7 @@ async fn test_remove_tlc_with_expiry_error() {
     assert!(add_tlc_result.is_err());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_duplicated() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -2722,7 +2722,7 @@ async fn do_test_add_tlc_duplicated() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_waiting_ack() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -2795,7 +2795,7 @@ async fn do_test_add_tlc_waiting_ack() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_with_number_limit() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 100000000000;
@@ -2875,7 +2875,7 @@ async fn do_test_add_tlc_with_number_limit() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_number_limit_reverse() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 100000000000;
@@ -2954,7 +2954,7 @@ async fn do_test_add_tlc_number_limit_reverse() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_value_limit() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 100000000000;
@@ -3035,7 +3035,7 @@ async fn do_test_add_tlc_value_limit() {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn do_test_add_tlc_min_tlc_value_limit() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -3128,7 +3128,7 @@ async fn do_test_add_tlc_min_tlc_value_limit() {
     assert!(add_tlc_result.is_ok());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_channel_update_tlc_expiry() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -3187,7 +3187,7 @@ async fn test_channel_update_tlc_expiry() {
     assert!(update_result.is_ok());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_forward_payment_channel_disabled() {
     let (nodes, channels) = create_n_nodes_network(
         &[
@@ -3282,7 +3282,7 @@ async fn test_forward_payment_channel_disabled() {
     node_c.wait_until_success(payment_hash).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_forward_payment_tlc_minimum_value() {
     let (nodes, channels) = create_n_nodes_network(
         &[
@@ -3450,7 +3450,7 @@ async fn test_forward_payment_tlc_minimum_value() {
         .contains("Failed to build route, PathFind error: no path found"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_outdated_fee_rate() {
     init_tracing();
     let (nodes, _) = create_n_nodes_network(
@@ -3510,7 +3510,7 @@ async fn test_send_payment_with_outdated_fee_rate() {
     node_a.wait_until_failed(payment_hash).await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_remove_tlc_with_wrong_hash_algorithm() {
     let supported_algorithms = HashAlgorithm::supported_algorithms();
     for algorithm1 in &supported_algorithms {
@@ -3658,7 +3658,7 @@ async fn do_test_channel_with_simple_update_operation(algorithm: HashAlgorithm) 
     // TODO: maybe also check shutdown tx outputs and output balances here.
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_open_channel_with_invalid_ckb_amount_range() {
     init_tracing();
 
@@ -3690,7 +3690,7 @@ async fn test_open_channel_with_invalid_ckb_amount_range() {
         .contains("The funding amount (21267647932558653966460912964485513215) should be less than 18446744073709551615"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_revoke_old_commitment_transaction() {
     init_tracing();
 
@@ -3861,14 +3861,14 @@ async fn test_revoke_old_commitment_transaction() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_channel_with_simple_update_operation() {
     for algorithm in HashAlgorithm::supported_algorithms() {
         do_test_channel_with_simple_update_operation(algorithm).await
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_create_channel() {
     init_tracing();
     let [mut node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
@@ -3998,7 +3998,7 @@ async fn test_create_channel() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_reestablish_channel() {
     let [mut node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -4133,7 +4133,7 @@ async fn test_reestablish_channel() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_force_close_channel_when_remote_is_offline() {
     let (mut node_a, mut node_b, channel_id, _) =
         NetworkNode::new_2_nodes_with_established_channel(16200000000, 6200000000, true).await;
@@ -4164,7 +4164,7 @@ async fn test_force_close_channel_when_remote_is_offline() {
         .expect("successfully shutdown channel");
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_normal_shutdown_with_remove_tlc() {
     init_tracing();
 
@@ -4265,7 +4265,7 @@ async fn test_normal_shutdown_with_remove_tlc() {
     assert_eq!(node_b_balance, old_node_b_balance + tlc_amount);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_commitment_tx_capacity() {
     let (amount_a, amount_b) = (16200000000, 6200000000);
     let (node_a, _node_b, channel_id, _) =
@@ -4283,7 +4283,7 @@ async fn test_commitment_tx_capacity() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_connect_to_peers_with_mutual_channel_on_restart_1() {
     init_tracing();
 
@@ -4315,7 +4315,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_1() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_connect_to_peers_with_mutual_channel_on_restart_2() {
     init_tracing();
 
@@ -4348,7 +4348,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_2() {
     .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_node_restart_then_resend_add_tlc() {
     init_tracing();
 
@@ -4412,7 +4412,7 @@ async fn test_send_payment_with_node_restart_then_resend_add_tlc() {
     assert_eq!(payment_status, PaymentSessionStatus::Success);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_node_reestablish_resend_remove_tlc() {
     init_tracing();
 
@@ -4513,7 +4513,7 @@ async fn test_node_reestablish_resend_remove_tlc() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_open_channel_with_large_size_shutdown_script_should_fail() {
     let [node_a, node_b] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -4547,7 +4547,7 @@ async fn test_open_channel_with_large_size_shutdown_script_should_fail() {
         .contains("The funding amount (8199999999) should be greater than or equal to 8200000000"));
 }
 
-#[tokio::test]
+#[crate::test]
 #[should_panic(expected = "Waiting for event timeout")]
 async fn test_accept_channel_with_large_size_shutdown_script_should_fail() {
     let mut nodes = NetworkNode::new_n_interconnected_nodes_with_config(2, |i| {
@@ -4620,7 +4620,7 @@ async fn test_accept_channel_with_large_size_shutdown_script_should_fail() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_shutdown_channel_with_large_size_shutdown_script_should_fail() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -4652,7 +4652,7 @@ async fn test_shutdown_channel_with_large_size_shutdown_script_should_fail() {
         .contains("Local balance is not enough to pay the fee"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_shutdown_channel_with_different_size_shutdown_script() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -4732,7 +4732,7 @@ async fn test_shutdown_channel_with_different_size_shutdown_script() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_shutdown_channel_network_graph_will_not_sync_private_channel() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -4757,7 +4757,7 @@ async fn test_shutdown_channel_network_graph_will_not_sync_private_channel() {
     assert_eq!(network_channels.len(), 0);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_shutdown_channel_network_graph_with_sync_up() {
     let node_a_funding_amount = 100000000000;
     let node_b_funding_amount = 6200000000;
@@ -4819,7 +4819,7 @@ async fn test_shutdown_channel_network_graph_with_sync_up() {
     assert!(!network_channels[0].update_of_node2.unwrap().enabled);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_channel_balance_error() {
     init_tracing();
 
@@ -4882,7 +4882,7 @@ async fn test_send_payment_with_channel_balance_error() {
     assert_eq!(payment_session.retried_times, 2);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_disable_channel() {
     init_tracing();
 
@@ -4918,7 +4918,7 @@ async fn test_send_payment_with_disable_channel() {
     assert_eq!(payment_session.retried_times, 1);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_multiple_edges_in_middle_hops() {
     init_tracing();
 
@@ -4963,7 +4963,7 @@ async fn test_send_payment_with_multiple_edges_in_middle_hops() {
     assert_eq!(payment_session.retried_times, 1);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_all_failed_middle_hops() {
     init_tracing();
 
@@ -5009,7 +5009,7 @@ async fn test_send_payment_with_all_failed_middle_hops() {
     assert_eq!(payment_session.retried_times, 3);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_multiple_edges_can_succeed_in_retry() {
     init_tracing();
 
@@ -5055,7 +5055,7 @@ async fn test_send_payment_with_multiple_edges_can_succeed_in_retry() {
     assert_eq!(payment_session.retried_times, 2);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_final_hop_multiple_edges_in_middle_hops() {
     init_tracing();
 
@@ -5100,7 +5100,7 @@ async fn test_send_payment_with_final_hop_multiple_edges_in_middle_hops() {
     assert_eq!(payment_session.retried_times, 1);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_final_all_failed_middle_hops() {
     init_tracing();
 
@@ -5144,7 +5144,7 @@ async fn test_send_payment_with_final_all_failed_middle_hops() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_final_multiple_edges_can_succeed_in_retry() {
     init_tracing();
 
@@ -5189,7 +5189,7 @@ async fn test_send_payment_with_final_multiple_edges_can_succeed_in_retry() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_first_hop_failed_with_fee() {
     init_tracing();
 
@@ -5227,7 +5227,7 @@ async fn test_send_payment_with_first_hop_failed_with_fee() {
     assert!(res.unwrap_err().contains("Failed to build route"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_succeed_with_multiple_edges_in_first_hop() {
     init_tracing();
 
@@ -5271,7 +5271,7 @@ async fn test_send_payment_succeed_with_multiple_edges_in_first_hop() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_with_first_hop_all_failed() {
     init_tracing();
 
@@ -5310,7 +5310,7 @@ async fn test_send_payment_with_first_hop_all_failed() {
     assert!(res.unwrap_err().contains("Failed to build route"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_succeed_with_direct_channel_info_first_hop() {
     init_tracing();
 
@@ -5362,7 +5362,7 @@ async fn test_send_payment_will_succeed_with_direct_channel_info_first_hop() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_succeed_with_retry_in_middle_hops() {
     init_tracing();
 
@@ -5421,7 +5421,7 @@ async fn test_send_payment_will_succeed_with_retry_in_middle_hops() {
     assert_eq!(node_0_amount - amount - fee, new_node0_amount);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_fail_with_last_hop_info_in_add_tlc_peer() {
     init_tracing();
 
@@ -5480,7 +5480,7 @@ async fn test_send_payment_will_fail_with_last_hop_info_in_add_tlc_peer() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_fail_with_invoice_not_generated_by_target() {
     init_tracing();
 
@@ -5526,7 +5526,7 @@ async fn test_send_payment_will_fail_with_invoice_not_generated_by_target() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_succeed_with_valid_invoice() {
     init_tracing();
 
@@ -5586,7 +5586,7 @@ async fn test_send_payment_will_succeed_with_valid_invoice() {
         .is_none());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_fail_with_no_invoice_preimage() {
     init_tracing();
 
@@ -5646,7 +5646,7 @@ async fn test_send_payment_will_fail_with_no_invoice_preimage() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_fail_with_cancelled_invoice() {
     init_tracing();
 
@@ -5707,7 +5707,7 @@ async fn test_send_payment_will_fail_with_cancelled_invoice() {
         .is_some());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_send_payment_will_succeed_with_large_tlc_expiry_limit() {
     init_tracing();
 
@@ -5760,7 +5760,7 @@ async fn test_send_payment_will_succeed_with_large_tlc_expiry_limit() {
         .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_abandon_failed_channel_without_accept() {
     let [mut node_a, node_b] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -5802,7 +5802,7 @@ async fn test_abandon_failed_channel_without_accept() {
     node_a.expect_debug_event("ChannelActorStopped").await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_abandon_channel_with_peer_accept() {
     let [mut node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
 

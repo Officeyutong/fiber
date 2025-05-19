@@ -5,6 +5,7 @@ pub use config::Config;
 mod tests;
 use fiber::types::Hash256;
 use rand::Rng;
+use store::Store;
 #[cfg(test)]
 pub use tests::*;
 
@@ -90,17 +91,4 @@ pub mod macros {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub fn block_in_place<F, R>(f: F) -> R
-where
-    F: FnOnce() -> R,
-{
-    tokio::task::block_in_place(f)
-}
-#[cfg(target_arch = "wasm32")]
-pub fn block_in_place<F, R>(f: F) -> R
-where
-    F: FnOnce() -> R,
-{
-    f()
-}
+pub(crate) use crate::tests::test;

@@ -359,7 +359,7 @@ impl Actor for TlcActor {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_tlc_actor() {
     let (network_actor, _handle) = Actor::spawn(None, NetworkActor {}, ())
         .await
@@ -459,7 +459,7 @@ async fn test_tlc_actor() {
     tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
 }
 
-#[test]
+#[crate::test]
 fn test_tlc_state_v2() {
     let mut tlc_state = TlcState::default();
     let mut add_tlc1 = TlcInfo {

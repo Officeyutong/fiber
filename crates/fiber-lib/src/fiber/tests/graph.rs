@@ -19,7 +19,7 @@ use ckb_types::{
 use secp256k1::{PublicKey, SecretKey, XOnlyPublicKey};
 
 use crate::gen_rand_secp256k1_keypair_tuple;
-
+#[cfg(not(target_arch="wasm32"))]
 use super::test_utils::TempDir;
 
 // Default tlc expiry delta used in this test environment.
@@ -276,7 +276,7 @@ impl MockNetworkGraph {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_graph_channel_info() {
     let mut mock_network = MockNetworkGraph::new(1);
     mock_network.add_edge(0, 1, Some(1000), Some(1));
@@ -288,7 +288,7 @@ fn test_graph_channel_info() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_graph_graph_apis() {
     let mut mock_network = MockNetworkGraph::new(4);
     let node1 = mock_network.keys[1];
@@ -316,7 +316,7 @@ fn test_graph_graph_apis() {
     assert_eq!(node1_channels.count(), 1);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_basic() {
     let mut network = MockNetworkGraph::new(4);
     network.add_edge(1, 2, Some(1), Some(2));
@@ -337,7 +337,7 @@ fn test_graph_find_path_basic() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_three_nodes() {
     let mut network = MockNetworkGraph::new(3);
     network.add_edge(1, 2, Some(500), Some(2));
@@ -376,7 +376,7 @@ fn test_graph_find_path_three_nodes() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_fee() {
     let mut network = MockNetworkGraph::new(5);
 
@@ -407,7 +407,7 @@ fn test_graph_find_path_fee() {
     assert_eq!(route[1].amount_received, 100);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_expiry() {
     let mut network = MockNetworkGraph::new(5);
 
@@ -434,7 +434,7 @@ fn test_graph_find_path_expiry() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_direct_linear() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -455,7 +455,7 @@ fn test_graph_find_path_direct_linear() {
     assert_eq!(route[3].channel_outpoint, network.edges[3].2);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_cycle() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -474,7 +474,7 @@ fn test_graph_find_path_cycle() {
     assert!(route.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_cycle_in_middle() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -490,7 +490,7 @@ fn test_graph_find_path_cycle_in_middle() {
     assert!(route.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_loop_exit() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -507,7 +507,7 @@ fn test_graph_find_path_loop_exit() {
     assert!(route.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_amount_failed() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -520,7 +520,7 @@ fn test_graph_find_path_amount_failed() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_optimal_path() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -552,7 +552,7 @@ fn test_graph_find_optimal_path() {
     assert_eq!(small_route[1].channel_outpoint, network.edges[5].2);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_router_is_ok_with_fee_rate() {
     let mut network = MockNetworkGraph::new(6);
 
@@ -595,7 +595,7 @@ fn test_graph_build_router_is_ok_with_fee_rate() {
     assert_eq!(amounts, vec![1000, 1000]);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_router_fee_rate_optimize() {
     let mut network = MockNetworkGraph::new(10);
 
@@ -638,7 +638,7 @@ fn test_graph_build_router_fee_rate_optimize() {
     assert_eq!(amounts, vec![1050, 1000, 1000]);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_router_no_fee_with_direct_pay() {
     let mut network = MockNetworkGraph::new(10);
 
@@ -673,7 +673,7 @@ fn test_graph_build_router_no_fee_with_direct_pay() {
     assert_eq!(amounts, vec![1000, 1000]);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_err() {
     let mut network = MockNetworkGraph::new(6);
     let node1 = network.keys[1];
@@ -710,7 +710,7 @@ fn test_graph_find_path_err() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_node_order() {
     let mut network = MockNetworkGraph::new(6);
     let node1 = network.keys[1];
@@ -739,7 +739,7 @@ fn test_graph_find_path_node_order() {
     assert_eq!(route[1].target, node3.into());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_with_expiry_limit() {
     let mut network = MockNetworkGraph::new(6);
     let (node1, node2) = (network.keys[1], network.keys[2]);
@@ -773,7 +773,7 @@ fn test_graph_build_route_with_expiry_limit() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_three_nodes_amount() {
     let mut network = MockNetworkGraph::new(3);
     network.add_edge(0, 2, Some(500), Some(200000));
@@ -884,27 +884,27 @@ fn do_test_graph_build_route_expiry(n_nodes: usize) {
     assert_eq!(route[n_nodes - 1].expiry, route[n_nodes - 2].expiry);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_2_nodes_expiry() {
     do_test_graph_build_route_expiry(2);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_3_nodes_expiry() {
     do_test_graph_build_route_expiry(3);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_4_nodes_expiry() {
     do_test_graph_build_route_expiry(4);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_99_nodes_expiry() {
     do_test_graph_build_route_expiry(99);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_below_min_tlc_value() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50
@@ -935,7 +935,7 @@ fn test_graph_build_route_below_min_tlc_value() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_select_edge_with_latest_timestamp() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50
@@ -975,7 +975,7 @@ fn test_graph_build_route_select_edge_with_latest_timestamp() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_select_edge_with_large_capacity() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50
@@ -1014,7 +1014,7 @@ fn test_graph_build_route_select_edge_with_large_capacity() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_graph_find_path_udt() {
     let mut network = MockNetworkGraph::new(3);
     let udt_type_script = Script::default();
@@ -1033,7 +1033,7 @@ fn test_graph_find_path_udt() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_mark_failed_channel() {
     let mut network = MockNetworkGraph::new(5);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1089,7 +1089,7 @@ fn test_graph_mark_failed_channel() {
     assert!(route.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_session_router() {
     let mut network = MockNetworkGraph::new(5);
     network.add_edge(0, 2, Some(500), Some(50000));
@@ -1139,7 +1139,7 @@ fn test_graph_session_router() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_graph_mark_failed_node() {
     let mut network = MockNetworkGraph::new(5);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1242,7 +1242,7 @@ fn test_graph_mark_failed_node() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_self_default_is_false() {
     let mut network = MockNetworkGraph::new(5);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1270,7 +1270,7 @@ fn test_graph_payment_self_default_is_false() {
     assert!(message.contains("allow_self_payment is not enable, can not pay to self"));
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_pay_single_path() {
     let mut network = MockNetworkGraph::new(9);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1298,7 +1298,7 @@ fn test_graph_payment_pay_single_path() {
     network.build_route_with_expect(&payment_data, vec![2, 4, 5, 6]);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_pay_self_with_one_node() {
     let mut network = MockNetworkGraph::new(9);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1327,7 +1327,7 @@ fn test_graph_payment_pay_self_with_one_node() {
     assert_eq!(route[1].next_hop, Some(node0.into()));
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_pay_self_with_one_node_fee_rate() {
     let mut network = MockNetworkGraph::new(9);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1360,7 +1360,7 @@ fn test_graph_payment_pay_self_with_one_node_fee_rate() {
     assert_eq!(route[1].next_hop, Some(node0.into()));
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_with_double_edge_node() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50
@@ -1385,7 +1385,7 @@ fn test_graph_build_route_with_double_edge_node() {
     assert!(route.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_with_other_node_maybe_better() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50
@@ -1418,7 +1418,7 @@ fn test_graph_build_route_with_other_node_maybe_better() {
     assert_eq!(route[1].next_hop, Some(node0.into()));
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_pay_self_will_ok() {
     let mut network = MockNetworkGraph::new(9);
     network.add_edge(0, 2, Some(500), Some(2));
@@ -1463,7 +1463,7 @@ fn test_graph_payment_pay_self_will_ok() {
     network.build_route_with_possible_expects(&payment_data, &possible_expects);
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_with_path_limits() {
     let mut network = MockNetworkGraph::new(100);
     // Add edges with min_tlc_value set to 50
@@ -1509,7 +1509,7 @@ fn test_graph_build_route_with_path_limits() {
     assert!(fees.windows(2).all(|x| x[0] >= x[1]));
 }
 
-#[test]
+#[crate::test]
 fn test_graph_build_route_with_path_limit_fail_with_fee_not_enough() {
     let mut network = MockNetworkGraph::new(100);
     // Add edges with min_tlc_value set to 50
@@ -1543,7 +1543,7 @@ fn test_graph_build_route_with_path_limit_fail_with_fee_not_enough() {
     assert!(route.is_err());
 }
 
-#[test]
+#[crate::test]
 fn test_graph_payment_expiry_is_in_right_order() {
     let mut network = MockNetworkGraph::new(5);
     network.add_edge(0, 1, Some(500), Some(2));

@@ -73,7 +73,7 @@ fn mock_determined_invoice() -> CkbInvoice {
     invoice
 }
 
-#[test]
+#[crate::test]
 fn test_signature() {
     let private_key = gen_rand_secp256k1_private_key();
     let signature = Secp256k1::new().sign_ecdsa_recoverable(
@@ -88,7 +88,7 @@ fn test_signature() {
     assert_eq!(decoded_signature, signature);
 }
 
-#[test]
+#[crate::test]
 fn test_ckb_invoice() {
     let ckb_invoice = mock_invoice();
     let ckb_invoice_clone = ckb_invoice.clone();
@@ -99,7 +99,7 @@ fn test_ckb_invoice() {
     assert!(address.starts_with("fibb1280"));
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_bc32m() {
     let invoice = mock_invoice();
     assert!(invoice.is_signed());
@@ -114,7 +114,7 @@ fn test_invoice_bc32m() {
     assert_eq!(decoded_invoice.amount(), Some(1280));
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_from_str_err() {
     let invoice = mock_invoice();
 
@@ -155,7 +155,7 @@ fn test_invoice_from_str_err() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_bc32m_not_same() {
     let private_key = gen_rand_secp256k1_private_key();
     let signature = Secp256k1::new().sign_ecdsa_recoverable(
@@ -188,7 +188,7 @@ fn test_invoice_bc32m_not_same() {
     assert_ne!(mock_address, address);
 }
 
-#[test]
+#[crate::test]
 fn test_compress() {
     let input = "hrp1gyqsqqq5qqqqq9gqqqqp6qqqqq0qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq2qqqqqqqqqqqyvqsqqqsqqqqqvqqqqq8";
     let bytes = input.as_bytes();
@@ -200,7 +200,7 @@ fn test_compress() {
     assert!(compressed.len() < bytes.len());
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_builder() {
     let gen_payment_hash = gen_rand_sha256_hash();
     let (private_key, public_key) = gen_rand_secp256k1_keypair_tuple();
@@ -229,7 +229,7 @@ fn test_invoice_builder() {
     assert!(invoice.check_signature().is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_check_signature() {
     let gen_payment_hash = gen_rand_sha256_hash();
     let (private_key, public_key) = gen_rand_secp256k1_keypair_tuple();
@@ -285,7 +285,7 @@ fn test_invoice_check_signature() {
     assert_eq!(invoice_clone.check_signature(), Ok(()));
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_signature_check() {
     let gen_payment_hash = gen_rand_sha256_hash();
     let (private_key, _) = gen_rand_secp256k1_keypair_tuple();
@@ -306,7 +306,7 @@ fn test_invoice_signature_check() {
     assert_eq!(invoice.err(), Some(InvoiceError::InvalidSignature));
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_builder_duplicated_attr() {
     let gen_payment_hash = gen_rand_sha256_hash();
     let private_key = gen_rand_secp256k1_private_key();
@@ -326,7 +326,7 @@ fn test_invoice_builder_duplicated_attr() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_check_description_length() {
     let gen_payment_hash = gen_rand_sha256_hash();
     let private_key = gen_rand_secp256k1_private_key();
@@ -346,7 +346,7 @@ fn test_invoice_check_description_length() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_builder_missing() {
     let private_key = gen_rand_secp256k1_private_key();
     let invoice = InvoiceBuilder::new(Currency::Fibb)
@@ -364,7 +364,7 @@ fn test_invoice_builder_missing() {
     assert_eq!(invoice.err(), None);
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_builder_preimage() {
     let preimage = gen_rand_sha256_hash();
     let private_key = gen_rand_secp256k1_private_key();
@@ -381,7 +381,7 @@ fn test_invoice_builder_preimage() {
     assert_eq!(decoded_invoice, clone_invoice);
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_builder_both_payment_hash_preimage() {
     let preimage = gen_rand_sha256_hash();
     let payment_hash = gen_rand_sha256_hash();
@@ -398,7 +398,7 @@ fn test_invoice_builder_both_payment_hash_preimage() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_serialize() {
     let invoice = mock_invoice();
     let invoice_2 = mock_invoice();
@@ -429,7 +429,7 @@ fn test_invoice_serialize() {
     assert_eq!(decoded, invoice);
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_timestamp() {
     let payment_hash = gen_rand_sha256_hash();
     let private_key = gen_rand_secp256k1_private_key();
@@ -452,7 +452,7 @@ fn test_invoice_timestamp() {
     assert_ne!(invoice1.to_string(), invoice2.to_string());
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_gen_payment_hash() {
     let private_key = gen_rand_secp256k1_private_key();
     let payment_preimage = gen_rand_sha256_hash();
@@ -466,7 +466,7 @@ fn test_invoice_gen_payment_hash() {
     assert_eq!(expected_hash, *payment_hash);
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_rand_payment_hash() {
     let private_key = gen_rand_secp256k1_private_key();
     let invoice = InvoiceBuilder::new(Currency::Fibb)
@@ -475,7 +475,7 @@ fn test_invoice_rand_payment_hash() {
     assert!(invoice.is_ok());
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_udt_script() {
     let script = Script::default();
     let private_key = gen_rand_secp256k1_private_key();
@@ -493,7 +493,7 @@ fn test_invoice_udt_script() {
     assert_eq!(decoded, invoice);
 }
 
-#[test]
+#[crate::test]
 fn test_invoice_check_expired() {
     let private_key = gen_rand_secp256k1_private_key();
     let invoice = InvoiceBuilder::new(Currency::Fibb)

@@ -5,7 +5,7 @@ use ckb_types::core::{DepType, ScriptHashType};
 use ckb_types::H256;
 use molecule::prelude::Entity;
 
-#[test]
+#[crate::test]
 fn test_udt_whitelist() {
     let udt_whitelist = UdtCfgInfos(vec![UdtArgInfo {
         name: "SimpleUDT".to_string(),

@@ -3,6 +3,7 @@ use crate::fiber::history::output_direction;
 use crate::fiber::history::{Direction, DEFAULT_BIMODAL_DECAY_TIME};
 use crate::fiber::history::{InternalPairResult, InternalResult};
 use crate::fiber::history::{PaymentHistory, TimedResult};
+#[cfg(not(target_arch="wasm32"))]
 use crate::fiber::tests::test_utils::TempDir;
 use crate::store::Store;
 use crate::{gen_rand_channel_outpoint, gen_rand_fiber_public_key, now_timestamp_as_millis_u64};
@@ -22,19 +23,29 @@ impl Round for f64 {
 
 struct MockHistory {
     pub history: PaymentHistory<Store>,
+    #[cfg(not(target_arch="wasm32"))]
     #[allow(dead_code)]
     pub temp_dir: TempDir,
 }
 
 impl MockHistory {
+    #[cfg(target_arch="wasm32")]
     fn new() -> Self {
+        
+        let (store, _) = generate_store();
+        let history = PaymentHistory::new(gen_rand_fiber_public_key(), None, store);
+        Self { history }
+    }
+    #[cfg(not(target_arch="wasm32"))]
+ fn new() -> Self {
+        
         let (store, temp_dir) = generate_store();
         let history = PaymentHistory::new(gen_rand_fiber_public_key(), None, store);
         Self { history, temp_dir }
     }
 }
 
-#[test]
+#[crate::test]
 fn test_history_demo() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -72,7 +83,7 @@ fn test_history_demo() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_apply_channel_result() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -104,7 +115,7 @@ fn test_history_apply_channel_result() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_internal_result() {
     let mut internal_result = InternalResult::default();
     let from = gen_rand_fiber_public_key();
@@ -162,7 +173,7 @@ fn test_history_internal_result() {
     assert!(!res.success);
 }
 
-#[test]
+#[crate::test]
 fn test_history_internal_result_fail_pair() {
     let mut internal_result = InternalResult::default();
     let from = gen_rand_fiber_public_key();
@@ -203,7 +214,7 @@ fn test_history_internal_result_fail_pair() {
     assert!(!res.success);
 }
 
-#[test]
+#[crate::test]
 fn test_history_internal_result_success_range_pair() {
     let mut internal_result = InternalResult::default();
     let node1 = gen_rand_fiber_public_key();
@@ -248,7 +259,7 @@ fn test_history_internal_result_success_range_pair() {
     assert!(res.success);
 }
 
-#[test]
+#[crate::test]
 fn test_history_internal_result_fail_range_pair() {
     let mut internal_result = InternalResult::default();
     let node1 = gen_rand_fiber_public_key();
@@ -350,7 +361,7 @@ fn test_history_internal_result_fail_range_pair() {
     ));
 }
 
-#[test]
+#[crate::test]
 fn test_history_apply_internal_result_fail_node() {
     let mut internal_result = InternalResult::default();
     let mock = MockHistory::new();
@@ -448,7 +459,7 @@ fn test_history_apply_internal_result_fail_node() {
     ));
 }
 
-#[test]
+#[crate::test]
 fn test_history_fail_node_with_multiple_channels() {
     let mut internal_result = InternalResult::default();
     let mock = MockHistory::new();
@@ -590,7 +601,7 @@ fn test_history_fail_node_with_multiple_channels() {
     ));
 }
 
-#[test]
+#[crate::test]
 fn test_history_interval_success_fail() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -654,7 +665,7 @@ fn test_history_interval_success_fail() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_interval_fuzz_assertion_crash() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -688,7 +699,7 @@ fn test_history_interval_fuzz_assertion_crash() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_history_interval_fail_zero_after_succ() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -718,7 +729,7 @@ fn test_history_interval_fail_zero_after_succ() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_interval_keep_valid_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -751,7 +762,7 @@ fn test_history_interval_keep_valid_range() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -841,7 +852,7 @@ fn test_history_probability() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_direct_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -902,7 +913,7 @@ fn test_history_direct_probability() {
     assert!(prev_prob < 0.01);
 }
 
-#[test]
+#[crate::test]
 fn test_history_small_fail_amount_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -927,7 +938,7 @@ fn test_history_small_fail_amount_probability() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_channel_probability_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -968,7 +979,7 @@ fn test_history_channel_probability_range() {
     }
 }
 
-#[test]
+#[crate::test]
 fn test_history_eval_probability_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -1040,7 +1051,7 @@ fn test_history_eval_probability_range() {
     assert!(prev_prob > 0.0 && prev_prob < 0.55);
 }
 
-#[test]
+#[crate::test]
 fn test_history_load_store() {
     let temp_path = TempDir::new("test-history-store");
     let store = Store::new(temp_path).expect("created store failed");
@@ -1081,7 +1092,7 @@ fn test_history_load_store() {
     );
 }
 
-#[test]
+#[crate::test]
 fn test_history_can_send_with_time() {
     use crate::fiber::history::DEFAULT_BIMODAL_DECAY_TIME;
 
@@ -1104,7 +1115,7 @@ fn test_history_can_send_with_time() {
     assert_eq!(res, 4);
 }
 
-#[test]
+#[crate::test]
 fn test_history_can_not_send_with_time() {
     use crate::fiber::history::DEFAULT_BIMODAL_DECAY_TIME;
 

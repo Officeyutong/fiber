@@ -16,7 +16,7 @@ pub async fn create_mock_chain_actor() -> ActorRef<CkbChainMessage> {
         .0
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_submit_empty_tx() {
     let actor = create_mock_chain_actor().await;
     assert!(matches!(
@@ -25,7 +25,7 @@ async fn test_submit_empty_tx() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_submit_one_output_tx() {
     let actor = create_mock_chain_actor().await;
     assert!(matches!(
@@ -41,7 +41,7 @@ async fn test_submit_one_output_tx() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_submit_mocked_secp256k1_tx() {
     let actor = create_mock_chain_actor().await;
     let capacity = 100u64;
@@ -89,7 +89,7 @@ async fn test_submit_mocked_secp256k1_tx() {
     ));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_repeatedly_consume_the_same_cell() {
     let actor = create_mock_chain_actor().await;
     let capacity = 100u64;
@@ -160,7 +160,7 @@ async fn test_repeatedly_consume_the_same_cell() {
     assert!(matches!(submit_tx(actor, tx).await, TxStatus::Rejected(_)));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_submit_malformed_commitment_tx() {
     let actor = create_mock_chain_actor().await;
     let capacity = 100u64;

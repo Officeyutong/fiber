@@ -11,6 +11,7 @@ use ouroboros::self_referencing;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::sync::{Arc, RwLock};
+#[cfg(not(target_arch="wasm32"))]
 fn gen_path() -> std::path::PathBuf {
     let tmp_dir = tempfile::Builder::new()
         .prefix("test-store")
@@ -41,7 +42,7 @@ fn gen_migrate() -> StoreAndMigrate {
     StoreAndMigrate::new_with_path(path)
 }
 
-#[test]
+#[crate::test]
 fn test_default_migration() {
     let migrate = gen_migrate();
     assert!(migrate.borrow_migrate().need_init());
@@ -51,7 +52,7 @@ fn test_default_migration() {
     assert_eq!(migrate.borrow_migrate().check(), Ordering::Equal);
 }
 
-#[test]
+#[crate::test]
 fn test_run_migration() {
     let run_count = Arc::new(RwLock::new(0));
 

@@ -113,7 +113,7 @@ fn create_fake_node_announcement_message() -> NodeAnnouncement {
     create_node_announcement_message_with_priv_key(&priv_key)
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_save_our_own_node_announcement_to_graph() {
     let mut node = NetworkNode::new().await;
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -123,7 +123,7 @@ async fn test_save_our_own_node_announcement_to_graph() {
     assert_eq!(nodes[0].node_id, node.get_public_key());
 }
 
-#[tokio::test]
+#[crate::test]
 #[should_panic]
 async fn test_set_announced_addrs_with_invalid_peer_id() {
     let mut node = NetworkNode::new_with_config(
@@ -144,7 +144,7 @@ async fn test_set_announced_addrs_with_invalid_peer_id() {
     assert_eq!(nodes[0].node_id, node.get_public_key());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_set_announced_addrs_with_valid_peer_id() {
     let mut node = NetworkNode::new().await;
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -173,7 +173,7 @@ async fn test_set_announced_addrs_with_valid_peer_id() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_set_announced_addrs_without_p2p() {
     let addr = "/ip4/1.1.1.1/tcp/8346".to_string();
     let cloned_addr = addr.clone();
@@ -206,7 +206,7 @@ async fn test_set_announced_addrs_without_p2p() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_sync_channel_announcement_on_startup() {
     init_tracing();
 
@@ -258,7 +258,7 @@ async fn test_sync_channel_announcement_on_startup() {
     assert!(!channels.is_empty());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_node1_node2_channel_update() {
     let channel_context = ChannelTestContext::gen().await;
     let funding_tx = channel_context.funding_tx.clone();
@@ -318,7 +318,7 @@ async fn test_node1_node2_channel_update() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_channel_update_version() {
     let channel_context = ChannelTestContext::gen().await;
     let funding_tx = channel_context.funding_tx.clone();
@@ -386,7 +386,7 @@ async fn test_channel_update_version() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_query_missing_broadcast_message() {
     let channel_context = ChannelTestContext::gen().await;
     let funding_tx = channel_context.funding_tx.clone();
@@ -443,7 +443,7 @@ async fn test_query_missing_broadcast_message() {
     assert_eq!(node1_channel_info, node2_channel_info);
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_prune_channel_announcement_and_receive_channel_update() {
     let channel_context = ChannelTestContext::gen().await;
     let funding_tx = channel_context.funding_tx.clone();
@@ -538,7 +538,7 @@ async fn test_prune_channel_announcement_and_receive_channel_update() {
     );
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_sync_node_announcement_version() {
     init_tracing();
 
@@ -607,7 +607,7 @@ async fn test_sync_node_announcement_version() {
 // We will first create a node and announce a fake node announcement to the network.
 // Then we will create another node and connect to the first node.
 // We will see if the second node has the fake node announcement.
-#[tokio::test]
+#[crate::test]
 async fn test_sync_node_announcement_on_startup() {
     init_tracing();
 
@@ -633,7 +633,7 @@ async fn test_sync_node_announcement_on_startup() {
     assert!(node_info.is_some());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_sync_node_announcement_of_connected_nodes() {
     let [node1, node2] = NetworkNode::new_n_interconnected_nodes().await;
 
@@ -651,7 +651,7 @@ async fn test_sync_node_announcement_of_connected_nodes() {
 // We will first create a node and announce a fake node announcement to the network.
 // Then we will create another node and connect to the first node.
 // We will see if the second node has the fake node announcement.
-#[tokio::test]
+#[crate::test]
 async fn test_sync_node_announcement_after_restart() {
     init_tracing();
 
@@ -679,7 +679,7 @@ async fn test_sync_node_announcement_after_restart() {
     assert!(node_info.is_some());
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_persisting_network_state() {
     let mut node = NetworkNode::new().await;
     let state = node.store.clone();
@@ -688,7 +688,7 @@ async fn test_persisting_network_state() {
     assert!(state.get_network_actor_state(&peer_id).is_some())
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_persisting_bootnode() {
     let (boot_peer_id, address) = get_fake_peer_id_and_address();
     let address_string = format!("{}", &address);
@@ -708,7 +708,7 @@ async fn test_persisting_bootnode() {
     assert_eq!(peers.get(&boot_peer_id), Some(&vec![address]));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_persisting_announced_nodes() {
     init_tracing();
 
@@ -732,7 +732,7 @@ async fn test_persisting_announced_nodes() {
     assert!(peers.contains_key(&peer_id));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_connecting_to_bootnode() {
     let boot_node = NetworkNode::new().await;
     let boot_node_address = format!("{}", boot_node.get_node_address());
@@ -751,7 +751,7 @@ async fn test_connecting_to_bootnode() {
     .await;
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_saving_and_connecting_to_node() {
     init_tracing();
 
@@ -779,7 +779,7 @@ async fn test_saving_and_connecting_to_node() {
     .await;
 }
 
-#[test]
+#[crate::test]
 fn test_announcement_message_serialize() {
     let capacity = 42;
     let priv_key: Privkey = get_test_priv_key();
@@ -814,7 +814,7 @@ fn test_announcement_message_serialize() {
     assert_eq!(shutdown_info, deserialized);
 }
 
-#[test]
+#[crate::test]
 fn test_send_payment_validate_payment_hash() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),
@@ -827,7 +827,7 @@ fn test_send_payment_validate_payment_hash() {
     assert!(result.unwrap_err().contains("payment_hash is missing"));
 }
 
-#[test]
+#[crate::test]
 fn test_send_payment_validate_amount() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),
@@ -839,7 +839,7 @@ fn test_send_payment_validate_amount() {
     assert!(result.unwrap_err().contains("amount is missing"));
 }
 
-#[test]
+#[crate::test]
 fn test_send_payment_validate_invoice() {
     use crate::invoice::Attribute;
     use crate::invoice::Currency;
@@ -955,7 +955,7 @@ fn test_send_payment_validate_invoice() {
         .contains("invalid final_tlc_expiry_delta"));
 }
 
-#[test]
+#[crate::test]
 fn test_send_payment_validate_htlc_expiry_delta() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),
@@ -972,7 +972,7 @@ fn test_send_payment_validate_htlc_expiry_delta() {
         .contains("invalid final_tlc_expiry_delta"));
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_abort_funding_on_building_funding_tx() {
     use crate::fiber::network::{AcceptChannelCommand, OpenChannelCommand};
 
@@ -1081,7 +1081,7 @@ impl MockChainActorMiddleware for CkbTxFailureMockMiddleware {
     }
 }
 
-#[tokio::test]
+#[crate::test]
 async fn test_abort_funding_on_committing_funding_tx_on_chain() {
     use crate::fiber::network::{AcceptChannelCommand, OpenChannelCommand};
 
