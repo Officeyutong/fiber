@@ -37,7 +37,8 @@ use std::collections::HashSet;
 use std::time::Duration;
 use tracing::debug;
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_per_commitment_point_and_secret_consistency() {
     init_tracing();
 
@@ -48,7 +49,8 @@ fn test_per_commitment_point_and_secret_consistency() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_derive_private_and_public_tlc_keys() {
     let privkey = Privkey::from(&[1; 32]);
     let per_commitment_point = Privkey::from(&[2; 32]).pubkey();

@@ -55,12 +55,13 @@ pub fn decrypt_from_file<P: AsRef<Path>>(file: P, password: &[u8]) -> Result<Vec
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(target_arch = "wasm32"))]
     use super::*;
     #[cfg(not(target_arch = "wasm32"))]
     use tempfile::NamedTempFile;
 
     #[cfg(not(target_arch = "wasm32"))]
-    #[crate::test]
+    #[test]
     fn test_encrypt_and_decrypt_success() {
         let password = b"not my password";
         let plain_text = b"my super secret private key data";
@@ -74,7 +75,7 @@ mod tests {
         assert_eq!(plain_text.to_vec(), decrypted);
     }
     #[cfg(not(target_arch = "wasm32"))]
-    #[crate::test]
+    #[test]
     fn test_decrypt_with_wrong_password_should_fail() {
         let password = b"correct_password";
         let wrong_password = b"wrong_password";

@@ -30,6 +30,7 @@ use crate::invoice::CkbInvoiceStatus;
 use crate::invoice::InvoiceStore;
 use crate::invoice::PreimageStore;
 use crate::rpc::config::RpcConfig;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::rpc::server::start_rpc;
 use ckb_sdk::core::TransactionBuilder;
 use ckb_types::core::FeeRate;
@@ -37,29 +38,30 @@ use ckb_types::{
     core::{tx_pool::TxStatus, TransactionView},
     packed::{OutPoint, Script},
 };
-use jsonrpsee::core::client::ClientT;
-use jsonrpsee::http_client::transport::HttpBackend;
-use jsonrpsee::http_client::HttpClient;
-use jsonrpsee::rpc_params;
-use jsonrpsee::server::ServerHandle;
+#[cfg(not(target_arch = "wasm32"))]
+use jsonrpsee::{
+    core::client::ClientT, http_client::transport::HttpBackend, http_client::HttpClient,
+    rpc_params, server::ServerHandle,
+};
 use ractor::{call, Actor, ActorRef};
 use rand::distributions::Alphanumeric;
 use rand::rngs::OsRng;
 use rand::Rng;
 use secp256k1::{Message, Secp256k1};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+#[cfg(not(target_arch = "wasm32"))]
+use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::net::SocketAddr;
+#[cfg(target_arch = "wasm32")]
+use std::str::FromStr;
+#[cfg(not(target_arch = "wasm32"))]
+use std::{env, ffi::OsStr, mem::ManuallyDrop, net::SocketAddr};
 use std::{
-    env,
-    ffi::OsStr,
-    mem::ManuallyDrop,
     path::{Path, PathBuf},
     sync::Arc,
     time::Duration,
 };
+#[cfg(not(target_arch = "wasm32"))]
 use tempfile::TempDir as OldTempDir;
 use tentacle::{multiaddr::MultiAddr, secio::PeerId};
 use tokio::sync::RwLock as TokioRwLock;
@@ -88,13 +90,15 @@ use crate::{
     FiberConfig, NetworkServiceEvent,
 };
 
+#[cfg(feature = "watchtower")]
 static RETAIN_VAR: &str = "TEST_TEMP_RETAIN";
 pub(crate) const MIN_RESERVED_CKB: u128 = 4200000000;
 pub(crate) const HUGE_CKB_AMOUNT: u128 = MIN_RESERVED_CKB + 1000000000000_u128;
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 pub struct TempDir(ManuallyDrop<OldTempDir>);
-
+#[cfg(not(target_arch = "wasm32"))]
 impl TempDir {
     pub fn new<S: AsRef<OsStr>>(prefix: S) -> Self {
         Self(ManuallyDrop::new(
@@ -106,13 +110,13 @@ impl TempDir {
         self.0.path().to_str().expect("path to str")
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl AsRef<Path> for TempDir {
     fn as_ref(&self) -> &Path {
         self.0.path()
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl Drop for TempDir {
     fn drop(&mut self) {
         let retain = env::var(RETAIN_VAR);
@@ -183,15 +187,23 @@ pub fn mock_ecdsa_signature() -> EcdsaSignature {
     let signature = secp.sign_ecdsa(&message, &secret_key);
     EcdsaSignature(signature)
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 pub fn generate_store() -> (Store, TempDir) {
     let temp_dir = TempDir::new("test-fnn-node");
     let store = Store::new(temp_dir.as_ref());
     (store.expect("create store"), temp_dir)
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn generate_store() -> (Store, ()) {
+    use crate::create_temp_store;
+
+    (create_temp_store("test-fnn-node"), ())
+}
+
 #[derive(Debug)]
 pub struct NetworkNode {
+    #[cfg(not(target_arch = "wasm32"))]
     /// The base directory of the node, will be deleted after this struct dropped.
     pub base_dir: Arc<TempDir>,
     pub node_name: Option<String>,
@@ -212,10 +224,12 @@ pub struct NetworkNode {
     pub pubkey: Pubkey,
     pub unexpected_events: Arc<TokioRwLock<HashSet<String>>>,
     pub triggered_unexpected_events: Arc<TokioRwLock<Vec<String>>>,
+    #[cfg(not(target_arch = "wasm32"))]
     pub rpc_server: Option<(ServerHandle, SocketAddr)>,
 }
 
 pub struct NetworkNodeConfig {
+    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Arc<TempDir>,
     node_name: Option<String>,
     store: Store,
@@ -231,6 +245,7 @@ impl NetworkNodeConfig {
 }
 
 pub struct NetworkNodeConfigBuilder {
+    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Option<Arc<TempDir>>,
     node_name: Option<String>,
     enable_rpc_server: bool,
@@ -250,6 +265,7 @@ impl Default for NetworkNodeConfigBuilder {
 impl NetworkNodeConfigBuilder {
     pub fn new() -> Self {
         Self {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir: None,
             node_name: None,
             enable_rpc_server: false,
@@ -257,21 +273,26 @@ impl NetworkNodeConfigBuilder {
             mock_chain_actor_middleware: None,
         }
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn base_dir(mut self, base_dir: Arc<TempDir>) -> Self {
         self.base_dir = Some(base_dir);
         self
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn base_dir_prefix(self, prefix: &str) -> Self {
         self.base_dir(Arc::new(TempDir::new(prefix)))
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn base_dir_prefix(self, _prefix: &str) -> Self {
+        self
     }
 
     pub fn node_name(mut self, node_name: Option<String>) -> Self {
         self.node_name = node_name;
         self
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn enable_rpc_server(mut self, enable: bool) -> Self {
         self.enable_rpc_server = enable;
         self
@@ -294,10 +315,6 @@ impl NetworkNodeConfigBuilder {
     }
 
     pub fn build(self) -> NetworkNodeConfig {
-        let base_dir = self
-            .base_dir
-            .clone()
-            .unwrap_or_else(|| Arc::new(TempDir::new("test-fnn-node")));
         let node_name = self.node_name.clone();
 
         // generate a random string as db name to avoid conflict
@@ -307,9 +324,27 @@ impl NetworkNodeConfigBuilder {
             .take(5)
             .map(char::from)
             .collect();
-        let rand_db_dir = Path::new(base_dir.to_str()).join(rand_name);
+        #[cfg(not(target_arch = "wasm32"))]
+        let (base_dir, rand_db_dir, fiber_config) = {
+            let base_dir = self
+                .base_dir
+                .clone()
+                .unwrap_or_else(|| Arc::new(TempDir::new("test-fnn-node")));
+            let rand_db_dir = Path::new(base_dir.to_str()).join(rand_name);
+            let fiber_config = get_fiber_config(base_dir.as_ref(), node_name.as_deref());
+            (base_dir, rand_db_dir, fiber_config)
+        };
+        #[cfg(target_arch = "wasm32")]
+        let (rand_db_dir, fiber_config) = {
+            let base_dir = PathBuf::from_str("test-utils").unwrap();
+
+            let rand_db_dir = PathBuf::from_str("test-utils").unwrap().join(rand_name);
+            let fiber_config = get_fiber_config(&base_dir, node_name.as_deref());
+            (rand_db_dir, fiber_config)
+        };
+
         let store = Store::new(rand_db_dir).expect("create store");
-        let fiber_config = get_fiber_config(base_dir.as_ref(), node_name.as_deref());
+
         let rpc_config = if self.enable_rpc_server {
             Some(RpcConfig {
                 listening_addr: None,
@@ -326,6 +361,7 @@ impl NetworkNodeConfigBuilder {
             None
         };
         let mut config = NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -779,7 +815,7 @@ impl NetworkNode {
         })
         .await
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn send_rpc_request_raw<P: Serialize>(
         &self,
         method: &str,
@@ -800,7 +836,7 @@ impl NetworkNode {
             Err("RPC server not started".to_string())
         }
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn send_rpc_request<P: Serialize, R: DeserializeOwned>(
         &self,
         method: &str,
@@ -1058,6 +1094,7 @@ impl NetworkNode {
 
     pub async fn new_with_config(config: NetworkNodeConfig) -> Self {
         let NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1092,9 +1129,16 @@ impl NetworkNode {
             public_key,
             true,
         )));
+        #[cfg(not(target_arch = "wasm32"))]
+        let actor_name = format!("network actor name = {:?}", base_dir);
+        #[cfg(target_arch = "wasm32")]
+        let actor_name = {
+            let mut rng = rand::thread_rng();
+            format!("network actor name = {}", rng.gen_range(0..1e18 as u64))
+        };
 
         let network_actor = Actor::spawn_linked(
-            Some(format!("network actor at {}", base_dir.to_str())),
+            Some(actor_name),
             NetworkActor::new(
                 event_sender,
                 chain_actor.clone(),
@@ -1162,7 +1206,7 @@ impl NetworkNode {
                 }
             }
         });
-
+        #[cfg(not(target_arch = "wasm32"))]
         println!(
             "Network node started for peer_id {:?} in directory {:?}",
             &peer_id,
@@ -1172,7 +1216,7 @@ impl NetworkNode {
         let gossip_actor = ractor::registry::where_is(get_gossip_actor_name(&peer_id))
             .expect("gossip actor should have been started")
             .into();
-
+        #[cfg(not(target_arch = "wasm32"))]
         let rpc_handler = if let Some(rpc_config) = rpc_config.clone() {
             Some(
                 start_rpc(
@@ -1193,6 +1237,7 @@ impl NetworkNode {
         };
 
         Self {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1212,12 +1257,14 @@ impl NetworkNode {
             pubkey: public_key,
             unexpected_events,
             triggered_unexpected_events,
+            #[cfg(not(target_arch = "wasm32"))]
             rpc_server: rpc_handler,
         }
     }
 
     pub fn get_node_config(&self) -> NetworkNodeConfig {
         NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir: self.base_dir.clone(),
             node_name: self.node_name.clone(),
             store: self.store.clone(),
@@ -1293,9 +1340,11 @@ impl NetworkNode {
         }
     }
 
+    #[allow(unused)]
     pub async fn new_interconnected_nodes(n: usize, enable_rpc: bool) -> Vec<Self> {
         let mut nodes: Vec<NetworkNode> = Vec::with_capacity(n);
         for i in 0..n {
+            #[cfg(not(target_arch = "wasm32"))]
             let new = Self::new_with_config(
                 NetworkNodeConfigBuilder::new()
                     .node_name(Some(format!("node-{}", i)))
@@ -1304,6 +1353,14 @@ impl NetworkNode {
                     .build(),
             )
             .await;
+            #[cfg(target_arch = "wasm32")]
+            let new = Self::new_with_config(
+                NetworkNodeConfigBuilder::new()
+                    .node_name(Some(format!("node-{}", i)))
+                    .build(),
+            )
+            .await;
+
             for node in nodes.iter_mut() {
                 node.connect_to(&new).await;
             }

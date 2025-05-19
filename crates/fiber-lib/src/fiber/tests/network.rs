@@ -153,15 +153,21 @@ async fn test_set_announced_addrs_with_valid_peer_id() {
     let peer_id = node.get_peer_id();
     let addr = format!("/ip4/1.1.1.1/tcp/8346/p2p/{}", peer_id);
     let multiaddr = Multiaddr::from_str(&addr).expect("valid multiaddr");
-    let mut node = NetworkNode::new_with_config(
-        NetworkNodeConfigBuilder::new()
-            .base_dir(node.base_dir.clone())
-            .fiber_config_updater(move |config| {
-                config.announced_addrs = vec![addr.clone()];
-            })
-            .build(),
-    )
-    .await;
+    #[cfg(target_arch = "wasm32")]
+    let cfg = NetworkNodeConfigBuilder::new()
+        .fiber_config_updater(move |config| {
+            config.announced_addrs = vec![addr.clone()];
+        })
+        .build();
+    #[cfg(not(target_arch = "wasm32"))]
+    let cfg = NetworkNodeConfigBuilder::new()
+        .base_dir(node.base_dir.clone())
+        .fiber_config_updater(move |config| {
+            config.announced_addrs = vec![addr.clone()];
+        })
+        .build();
+
+    let mut node = NetworkNode::new_with_config(cfg).await;
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let nodes = node.get_network_graph_nodes().await;
@@ -607,6 +613,7 @@ async fn test_sync_node_announcement_version() {
 // We will first create a node and announce a fake node announcement to the network.
 // Then we will create another node and connect to the first node.
 // We will see if the second node has the fake node announcement.
+
 #[crate::test]
 async fn test_sync_node_announcement_on_startup() {
     init_tracing();
@@ -651,6 +658,7 @@ async fn test_sync_node_announcement_of_connected_nodes() {
 // We will first create a node and announce a fake node announcement to the network.
 // Then we will create another node and connect to the first node.
 // We will see if the second node has the fake node announcement.
+
 #[crate::test]
 async fn test_sync_node_announcement_after_restart() {
     init_tracing();
@@ -779,7 +787,9 @@ async fn test_saving_and_connecting_to_node() {
     .await;
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_announcement_message_serialize() {
     let capacity = 42;
     let priv_key: Privkey = get_test_priv_key();
@@ -814,7 +824,9 @@ fn test_announcement_message_serialize() {
     assert_eq!(shutdown_info, deserialized);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_send_payment_validate_payment_hash() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),
@@ -827,7 +839,9 @@ fn test_send_payment_validate_payment_hash() {
     assert!(result.unwrap_err().contains("payment_hash is missing"));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_send_payment_validate_amount() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),
@@ -839,7 +853,9 @@ fn test_send_payment_validate_amount() {
     assert!(result.unwrap_err().contains("amount is missing"));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_send_payment_validate_invoice() {
     use crate::invoice::Attribute;
     use crate::invoice::Currency;
@@ -955,7 +971,9 @@ fn test_send_payment_validate_invoice() {
         .contains("invalid final_tlc_expiry_delta"));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_send_payment_validate_htlc_expiry_delta() {
     let send_command = SendPaymentCommand {
         target_pubkey: Some(gen_rand_fiber_public_key()),

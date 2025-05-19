@@ -11,13 +11,19 @@ use ouroboros::self_referencing;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::sync::{Arc, RwLock};
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 fn gen_path() -> std::path::PathBuf {
     let tmp_dir = tempfile::Builder::new()
         .prefix("test-store")
         .tempdir()
         .unwrap();
     tmp_dir.as_ref().to_path_buf()
+}
+#[cfg(target_arch = "wasm32")]
+fn gen_path() -> std::path::PathBuf {
+    use std::{path::PathBuf, str::FromStr};
+
+    PathBuf::from_str("test-store").unwrap()
 }
 #[self_referencing]
 struct StoreAndMigrate {
@@ -42,7 +48,9 @@ fn gen_migrate() -> StoreAndMigrate {
     StoreAndMigrate::new_with_path(path)
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_default_migration() {
     let migrate = gen_migrate();
     assert!(migrate.borrow_migrate().need_init());
@@ -52,7 +60,9 @@ fn test_default_migration() {
     assert_eq!(migrate.borrow_migrate().check(), Ordering::Equal);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_run_migration() {
     let run_count = Arc::new(RwLock::new(0));
 

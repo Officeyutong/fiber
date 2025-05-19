@@ -18,8 +18,11 @@ use crate::invoice::*;
 use crate::now_timestamp_as_millis_u64;
 use crate::store::store_impl::deserialize_from;
 use crate::store::store_impl::serialize_to_vec;
+#[cfg(feature = "watchtower")]
 use crate::store::Store;
+#[cfg(feature = "watchtower")]
 use crate::watchtower::ChannelData;
+#[cfg(feature = "watchtower")]
 use crate::watchtower::WatchtowerStore;
 use ckb_hash::new_blake2b;
 use ckb_types::packed::*;
@@ -27,6 +30,7 @@ use ckb_types::prelude::*;
 use ckb_types::H256;
 use core::cmp::Ordering;
 use musig2::secp::MaybeScalar;
+#[cfg(not(target_arch = "wasm32"))]
 use musig2::CompactSignature;
 use musig2::SecNonce;
 use secp256k1::SecretKey;
@@ -76,7 +80,9 @@ fn mock_channel() -> ChannelAnnouncement {
     )
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_invoice() {
     let (store, _dir) = generate_store();
 
@@ -108,7 +114,9 @@ fn test_store_invoice() {
     assert_eq!(store.get_invoice_status(hash), Some(status));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_get_broadcast_messages_iter() {
     let (store, _dir) = generate_store();
     let timestamp = now_timestamp_as_millis_u64();
@@ -132,7 +140,9 @@ fn test_store_get_broadcast_messages_iter() {
     assert_eq!(iter.next(), None);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_get_broadcast_messages() {
     let (store, _dir) = generate_store();
     let timestamp = now_timestamp_as_millis_u64();
@@ -153,7 +163,9 @@ fn test_store_get_broadcast_messages() {
     assert_eq!(result, vec![]);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_save_channel_announcement() {
     let (store, _dir) = generate_store();
     let timestamp = now_timestamp_as_millis_u64();
@@ -167,7 +179,9 @@ fn test_store_save_channel_announcement() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_save_channel_update() {
     let (store, _dir) = generate_store();
     let flags_for_update_of_node1 = ChannelUpdateMessageFlags::UPDATE_OF_NODE1;
@@ -209,7 +223,9 @@ fn test_store_save_channel_update() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_save_node_announcement() {
     let (store, _dir) = generate_store();
     let (sk, node_announcement) = mock_node();
@@ -219,7 +235,8 @@ fn test_store_save_node_announcement() {
     assert_eq!(new_node_announcement, Some(node_announcement));
 }
 
-#[crate::test]
+#[cfg(feature = "watchtower")]
+#[test]
 fn test_store_wacthtower() {
     let path = TempDir::new("test-watchtower-store");
     let store = Store::new(path).expect("created store failed");
@@ -273,7 +290,9 @@ fn test_store_wacthtower() {
     assert_eq!(store.get_watch_channels(), vec![]);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_channel_state_serialize() {
     let state = ChannelState::AwaitingChannelReady(AwaitingChannelReadyFlags::CHANNEL_READY);
     let bincode_encoded = bincode::serialize(&state).unwrap();
@@ -295,7 +314,9 @@ fn blake2b_hash_with_salt(data: &[u8], salt: &[u8]) -> [u8; 32] {
     result
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_channel_actor_state_store() {
     let seed = [0u8; 32];
     let signer = InMemorySigner::generate_from_seed(&seed);
@@ -381,9 +402,7 @@ fn test_channel_actor_state_store() {
     let bincode_encoded = bincode::serialize(&state).unwrap();
     let _new_state: ChannelActorState = bincode::deserialize(&bincode_encoded).unwrap();
 
-    let path = TempDir::new("channel_actore_store");
-
-    let store = Store::new(path).expect("create store failed");
+    let store = create_temp_store("channel_actor_store");
     assert!(store.get_channel_actor_state(&state.id).is_none());
     store.insert_channel_actor_state(state.clone());
 
@@ -410,7 +429,9 @@ fn test_channel_actor_state_store() {
         .is_none());
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_serde_channel_actor_state_ciborium() {
     let seed = [0u8; 32];
     let signer = InMemorySigner::generate_from_seed(&seed);
@@ -499,7 +520,9 @@ fn test_serde_channel_actor_state_ciborium() {
         ciborium::from_reader(serialized.as_slice()).expect("deserialize to new state");
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_payment_session() {
     let (store, _dir) = generate_store();
     let payment_hash = gen_rand_sha256_hash();
@@ -530,7 +553,9 @@ fn test_store_payment_session() {
     assert_eq!(res.status, PaymentSessionStatus::Created);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_payment_sessions_with_status() {
     let (store, _dir) = generate_store();
     let payment_hash0 = gen_rand_sha256_hash();
@@ -593,9 +618,11 @@ fn test_store_payment_sessions_with_status() {
     assert_eq!(res.len(), 0);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_payment_history() {
-    let (mut store, _dir) = generate_store();
+    let (mut store, _) = generate_store();
     let result = TimedResult {
         fail_amount: 1,
         fail_time: 2,
@@ -659,7 +686,9 @@ fn test_store_payment_history() {
     assert_eq!(r1, r2);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_payment_custom_record() {
     let payment_hash = gen_rand_sha256_hash();
     let mut data = HashMap::new();
@@ -667,13 +696,15 @@ fn test_store_payment_custom_record() {
     data.insert(2, "world".to_string().into_bytes());
 
     let record = PaymentCustomRecords { data };
-    let (store, _temp) = generate_store();
+    let (store, _) = generate_store();
     store.insert_payment_custom_records(&payment_hash, record.clone());
     let res = store.get_payment_custom_records(&payment_hash).unwrap();
     assert_eq!(res, record);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_serde_node_announcement_as_broadcast_message() {
     let privkey = gen_rand_fiber_private_key();
     let node_announcement = NodeAnnouncement::new(
@@ -698,7 +729,9 @@ fn test_serde_node_announcement_as_broadcast_message() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_save_channel_announcement_and_get_timestamp() {
     let store = create_temp_store("test-gossip-store");
     let timestamp = now_timestamp_as_millis_u64();
@@ -712,7 +745,9 @@ fn test_store_save_channel_announcement_and_get_timestamp() {
     assert_eq!(timestamps, vec![(outpoint, [timestamp, 0, 0])]);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_store_save_channel_update_and_get_timestamp() {
     let store = create_temp_store("test-gossip-store");
     let flags_for_update_of_node1 = ChannelUpdateMessageFlags::UPDATE_OF_NODE1;

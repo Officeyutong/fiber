@@ -6,6 +6,7 @@ mod history;
 mod network;
 mod path;
 mod payment;
+#[cfg(not(target_arch = "wasm32"))]
 mod rpc;
 mod serde_utils;
 pub mod test_utils;

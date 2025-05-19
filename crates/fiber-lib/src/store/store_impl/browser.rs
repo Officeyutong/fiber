@@ -3,7 +3,7 @@ use std::path::Path;
 
 use super::KeyValue;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Store {}
 impl Store {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, String> {

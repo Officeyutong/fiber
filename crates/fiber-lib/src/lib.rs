@@ -5,7 +5,6 @@ pub use config::Config;
 mod tests;
 use fiber::types::Hash256;
 use rand::Rng;
-use store::Store;
 #[cfg(test)]
 pub use tests::*;
 
@@ -91,4 +90,7 @@ pub mod macros {
     }
 }
 
+#[cfg(test)]
 pub(crate) use crate::tests::test;
+#[cfg(test)]
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);

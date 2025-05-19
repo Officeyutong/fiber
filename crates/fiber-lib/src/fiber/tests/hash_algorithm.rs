@@ -1,6 +1,8 @@
 use crate::fiber::hash_algorithm::HashAlgorithm;
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_hash_algorithm_serialization_sha256() {
     let algorithm = HashAlgorithm::Sha256;
     let serialized = serde_json::to_string(&algorithm).expect("hash algorithm to json");
@@ -10,7 +12,9 @@ fn test_hash_algorithm_serialization_sha256() {
     assert_eq!(deserialized, algorithm);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_hash_algorithm_serialization_ckb_hash() {
     let algorithm = HashAlgorithm::CkbHash;
     let serialized = serde_json::to_string(&algorithm).expect("hash algorithm to json");

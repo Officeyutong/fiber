@@ -21,7 +21,9 @@ struct Foo {
     bar_16: u16,
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_serde_utils() {
     let foo = Foo {
         slice: [1, 2, 3, 4],

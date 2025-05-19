@@ -3,10 +3,13 @@ use crate::fiber::history::output_direction;
 use crate::fiber::history::{Direction, DEFAULT_BIMODAL_DECAY_TIME};
 use crate::fiber::history::{InternalPairResult, InternalResult};
 use crate::fiber::history::{PaymentHistory, TimedResult};
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 use crate::fiber::tests::test_utils::TempDir;
 use crate::store::Store;
-use crate::{gen_rand_channel_outpoint, gen_rand_fiber_public_key, now_timestamp_as_millis_u64};
+use crate::{
+    create_temp_store, gen_rand_channel_outpoint, gen_rand_fiber_public_key,
+    now_timestamp_as_millis_u64,
+};
 use ckb_types::packed::OutPoint;
 
 use super::test_utils::generate_store;
@@ -23,29 +26,28 @@ impl Round for f64 {
 
 struct MockHistory {
     pub history: PaymentHistory<Store>,
-    #[cfg(not(target_arch="wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     #[allow(dead_code)]
     pub temp_dir: TempDir,
 }
 
 impl MockHistory {
-    #[cfg(target_arch="wasm32")]
+    #[cfg(target_arch = "wasm32")]
     fn new() -> Self {
-        
         let (store, _) = generate_store();
         let history = PaymentHistory::new(gen_rand_fiber_public_key(), None, store);
         Self { history }
     }
-    #[cfg(not(target_arch="wasm32"))]
- fn new() -> Self {
-        
+    #[cfg(not(target_arch = "wasm32"))]
+    fn new() -> Self {
         let (store, temp_dir) = generate_store();
         let history = PaymentHistory::new(gen_rand_fiber_public_key(), None, store);
         Self { history, temp_dir }
     }
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_history_demo() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -83,7 +85,9 @@ fn test_history_demo() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_apply_channel_result() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -115,7 +119,9 @@ fn test_history_apply_channel_result() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_internal_result() {
     let mut internal_result = InternalResult::default();
     let from = gen_rand_fiber_public_key();
@@ -173,7 +179,9 @@ fn test_history_internal_result() {
     assert!(!res.success);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_internal_result_fail_pair() {
     let mut internal_result = InternalResult::default();
     let from = gen_rand_fiber_public_key();
@@ -214,7 +222,9 @@ fn test_history_internal_result_fail_pair() {
     assert!(!res.success);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_internal_result_success_range_pair() {
     let mut internal_result = InternalResult::default();
     let node1 = gen_rand_fiber_public_key();
@@ -259,7 +269,9 @@ fn test_history_internal_result_success_range_pair() {
     assert!(res.success);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_internal_result_fail_range_pair() {
     let mut internal_result = InternalResult::default();
     let node1 = gen_rand_fiber_public_key();
@@ -361,7 +373,9 @@ fn test_history_internal_result_fail_range_pair() {
     ));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_apply_internal_result_fail_node() {
     let mut internal_result = InternalResult::default();
     let mock = MockHistory::new();
@@ -459,7 +473,8 @@ fn test_history_apply_internal_result_fail_node() {
     ));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_history_fail_node_with_multiple_channels() {
     let mut internal_result = InternalResult::default();
     let mock = MockHistory::new();
@@ -601,7 +616,9 @@ fn test_history_fail_node_with_multiple_channels() {
     ));
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_interval_success_fail() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -665,7 +682,9 @@ fn test_history_interval_success_fail() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_interval_fuzz_assertion_crash() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -699,7 +718,9 @@ fn test_history_interval_fuzz_assertion_crash() {
     }
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_interval_fail_zero_after_succ() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -729,7 +750,9 @@ fn test_history_interval_fail_zero_after_succ() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_interval_keep_valid_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -762,7 +785,9 @@ fn test_history_interval_keep_valid_range() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -852,7 +877,8 @@ fn test_history_probability() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_history_direct_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -913,7 +939,9 @@ fn test_history_direct_probability() {
     assert!(prev_prob < 0.01);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_small_fail_amount_probability() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -938,7 +966,9 @@ fn test_history_small_fail_amount_probability() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_channel_probability_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -979,7 +1009,9 @@ fn test_history_channel_probability_range() {
     }
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_eval_probability_range() {
     let mock = MockHistory::new();
     let mut history = mock.history;
@@ -1051,10 +1083,11 @@ fn test_history_eval_probability_range() {
     assert!(prev_prob > 0.0 && prev_prob < 0.55);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_load_store() {
-    let temp_path = TempDir::new("test-history-store");
-    let store = Store::new(temp_path).expect("created store failed");
+    let store = create_temp_store("test-history-store");
     let mut history = PaymentHistory::new(gen_rand_fiber_public_key(), None, store.clone());
     let from = gen_rand_fiber_public_key();
     let target = gen_rand_fiber_public_key();
@@ -1092,7 +1125,9 @@ fn test_history_load_store() {
     );
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_can_send_with_time() {
     use crate::fiber::history::DEFAULT_BIMODAL_DECAY_TIME;
 
@@ -1115,7 +1150,9 @@ fn test_history_can_send_with_time() {
     assert_eq!(res, 4);
 }
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+
 fn test_history_can_not_send_with_time() {
     use crate::fiber::history::DEFAULT_BIMODAL_DECAY_TIME;
 

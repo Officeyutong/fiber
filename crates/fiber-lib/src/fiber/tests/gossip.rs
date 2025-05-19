@@ -13,7 +13,6 @@ use ractor::{
 use tentacle::secio::PeerId;
 use tokio::sync::RwLock;
 
-use crate::fiber::gossip::{GossipActorMessage, GossipConfig, GossipService};
 use crate::fiber::tests::test_utils::{
     establish_channel_between_nodes, ChannelParameters, NetworkNode,
 };
@@ -34,10 +33,12 @@ use crate::{
     store::Store,
 };
 use crate::{create_invalid_ecdsa_signature, now_timestamp_as_millis_u64, ChannelTestContext};
+use crate::{
+    create_temp_store,
+    fiber::gossip::{GossipActorMessage, GossipConfig, GossipService},
+};
 
 use super::test_utils::get_test_root_actor;
-#[cfg(not(target_arch = "wasm32"))]
-use super::test_utils::TempDir;
 struct GossipTestingContext {
     chain_actor: ActorRef<CkbChainMessage>,
     gossip_actor: ActorRef<GossipActorMessage>,
@@ -46,8 +47,7 @@ struct GossipTestingContext {
 
 impl GossipTestingContext {
     async fn new() -> Self {
-        let dir = TempDir::new("test-gossip-store");
-        let store = Store::new(dir).expect("created store failed");
+        let store = create_temp_store("test-gossip-store");
         let chain_actor = create_mock_chain_actor().await;
         let root_actor = get_test_root_actor().await;
 

@@ -5,7 +5,8 @@ use ckb_types::core::{DepType, ScriptHashType};
 use ckb_types::H256;
 use molecule::prelude::Entity;
 
-#[crate::test]
+#[cfg_attr(target_arch = "wasm32", crate::test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_udt_whitelist() {
     let udt_whitelist = UdtCfgInfos(vec![UdtArgInfo {
         name: "SimpleUDT".to_string(),

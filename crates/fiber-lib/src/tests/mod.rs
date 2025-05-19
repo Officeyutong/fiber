@@ -1,3 +1,4 @@
+use cfg_if::cfg_if;
 use ckb_hash::blake2b_256;
 use ckb_types::core::TransactionView;
 use ckb_types::packed::CellOutput;
@@ -209,16 +210,20 @@ pub fn create_invalid_ecdsa_signature() -> EcdsaSignature {
     sk.sign([0u8; 32])
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use tokio::test;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn create_temp_store(name: impl AsRef<str>) -> Store {
-    let dir = TempDir::new(name.as_ref());
-    let store = Store::new(dir).expect("created store failed");
-}
-#[cfg(target_arch = "wasm32")]
-pub(crate) use wasm_bindgen_test::wasm_bindgen_test as test;
-#[cfg(target_arch = "wasm32")]
-pub(crate) fn create_temp_store(name: impl AsRef<str>) -> Store {
-    let store = Store::new(name.as_ref()).expect("created store failed");
+cfg_if! {
+    if #[cfg(not(target_arch = "wasm32"))] {
+        pub(crate) use tokio::test;
+        pub(crate) fn create_temp_store(name: impl AsRef<str>) -> crate::store:: Store {
+            let dir = tempfile::TempDir::with_prefix(name.as_ref()).unwrap();
+            let store = crate::store::Store::new(dir).expect("created store failed");
+            store
+        }
+    } else {
+        pub(crate) use wasm_bindgen_test::wasm_bindgen_test as test;
+        pub(crate) fn create_temp_store(name: impl AsRef<str>) ->  crate::store::Store {
+            let store = crate::store:: Store::new(name.as_ref()).expect("created store failed");
+            store
+        }
+
+    }
 }
