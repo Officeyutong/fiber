@@ -14,8 +14,9 @@ use tentacle::secio::PeerId;
 use tokio::sync::RwLock;
 
 use crate::fiber::tests::test_utils::{
-    establish_channel_between_nodes, ChannelParameters, NetworkNode,
-};
+    establish_channel_between_nodes, ChannelParameters, };
+ #[cfg(not(target_arch = "wasm32"))]
+ use crate::fiber::tests::test_utils::NetworkNode;
 use crate::fiber::types::{ChannelUpdateChannelFlags, NodeAnnouncement};
 use crate::{
     ckb::{

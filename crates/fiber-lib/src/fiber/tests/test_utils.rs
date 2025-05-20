@@ -201,9 +201,9 @@ pub fn generate_store() -> (Store, ()) {
     (create_temp_store("test-fnn-node"), ())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 pub struct NetworkNode {
-    #[cfg(not(target_arch = "wasm32"))]
     /// The base directory of the node, will be deleted after this struct dropped.
     pub base_dir: Arc<TempDir>,
     pub node_name: Option<String>,
@@ -224,12 +224,10 @@ pub struct NetworkNode {
     pub pubkey: Pubkey,
     pub unexpected_events: Arc<TokioRwLock<HashSet<String>>>,
     pub triggered_unexpected_events: Arc<TokioRwLock<Vec<String>>>,
-    #[cfg(not(target_arch = "wasm32"))]
     pub rpc_server: Option<(ServerHandle, SocketAddr)>,
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 pub struct NetworkNodeConfig {
-    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Arc<TempDir>,
     node_name: Option<String>,
     store: Store,
@@ -237,15 +235,14 @@ pub struct NetworkNodeConfig {
     rpc_config: Option<RpcConfig>,
     mock_chain_actor_middleware: Option<Box<dyn MockChainActorMiddleware>>,
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl NetworkNodeConfig {
     pub fn builder() -> NetworkNodeConfigBuilder {
         NetworkNodeConfigBuilder::new()
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 pub struct NetworkNodeConfigBuilder {
-    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Option<Arc<TempDir>>,
     node_name: Option<String>,
     enable_rpc_server: bool,
@@ -255,17 +252,16 @@ pub struct NetworkNodeConfigBuilder {
     fiber_config_updater: Option<Box<dyn FnOnce(&mut FiberConfig) + 'static>>,
     mock_chain_actor_middleware: Option<Box<dyn MockChainActorMiddleware>>,
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl Default for NetworkNodeConfigBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl NetworkNodeConfigBuilder {
     pub fn new() -> Self {
         Self {
-            #[cfg(not(target_arch = "wasm32"))]
             base_dir: None,
             node_name: None,
             enable_rpc_server: false,
@@ -273,26 +269,19 @@ impl NetworkNodeConfigBuilder {
             mock_chain_actor_middleware: None,
         }
     }
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn base_dir(mut self, base_dir: Arc<TempDir>) -> Self {
         self.base_dir = Some(base_dir);
         self
     }
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn base_dir_prefix(self, prefix: &str) -> Self {
         self.base_dir(Arc::new(TempDir::new(prefix)))
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    pub fn base_dir_prefix(self, _prefix: &str) -> Self {
-        self
     }
 
     pub fn node_name(mut self, node_name: Option<String>) -> Self {
         self.node_name = node_name;
         self
     }
-    #[cfg(not(target_arch = "wasm32"))]
+
     pub fn enable_rpc_server(mut self, enable: bool) -> Self {
         self.enable_rpc_server = enable;
         self
@@ -324,7 +313,6 @@ impl NetworkNodeConfigBuilder {
             .take(5)
             .map(char::from)
             .collect();
-        #[cfg(not(target_arch = "wasm32"))]
         let (base_dir, rand_db_dir, fiber_config) = {
             let base_dir = self
                 .base_dir
@@ -333,14 +321,6 @@ impl NetworkNodeConfigBuilder {
             let rand_db_dir = Path::new(base_dir.to_str()).join(rand_name);
             let fiber_config = get_fiber_config(base_dir.as_ref(), node_name.as_deref());
             (base_dir, rand_db_dir, fiber_config)
-        };
-        #[cfg(target_arch = "wasm32")]
-        let (rand_db_dir, fiber_config) = {
-            let base_dir = PathBuf::from_str("test-utils").unwrap();
-
-            let rand_db_dir = PathBuf::from_str("test-utils").unwrap().join(rand_name);
-            let fiber_config = get_fiber_config(&base_dir, node_name.as_deref());
-            (rand_db_dir, fiber_config)
         };
 
         let store = Store::new(rand_db_dir).expect("create store");
@@ -361,7 +341,6 @@ impl NetworkNodeConfigBuilder {
             None
         };
         let mut config = NetworkNodeConfig {
-            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -407,6 +386,7 @@ impl ChannelParameters {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) async fn establish_channel_between_nodes(
     node_a: &mut NetworkNode,
     node_b: &mut NetworkNode,
@@ -507,7 +487,7 @@ pub(crate) async fn establish_channel_between_nodes(
 
     (new_channel_id, funding_tx_hash)
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) async fn create_nodes_with_established_channel(
     node_a_funding_amount: u128,
     node_b_funding_amount: u128,
@@ -529,7 +509,7 @@ pub(crate) async fn create_nodes_with_established_channel(
 
     (node_a, node_b, channel_id)
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) async fn create_3_nodes_with_established_channel(
     (channel_1_amount_a, channel_1_amount_b): (u128, u128),
     (channel_2_amount_b, channel_2_amount_c): (u128, u128),
@@ -546,6 +526,7 @@ pub(crate) async fn create_3_nodes_with_established_channel(
     (node_a, node_b, node_c, channels[0], channels[1])
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 // make a network like A -> B -> C -> D
 pub(crate) async fn create_n_nodes_with_established_channel(
     amounts: &[(u128, u128)],
@@ -562,6 +543,7 @@ pub(crate) async fn create_n_nodes_with_established_channel(
 }
 
 #[allow(clippy::type_complexity)]
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) async fn create_n_nodes_network_with_params(
     amounts: &[((usize, usize), ChannelParameters)],
     n: usize,
@@ -622,7 +604,7 @@ pub(crate) async fn create_n_nodes_network_with_params(
     }
     (nodes, channels)
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::type_complexity)]
 pub(crate) async fn create_n_nodes_network(
     amounts: &[((usize, usize), (u128, u128))],
@@ -634,7 +616,7 @@ pub(crate) async fn create_n_nodes_network(
         .collect::<Vec<_>>();
     create_n_nodes_network_with_params(&amounts, n, false).await
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 impl NetworkNode {
     pub async fn new() -> Self {
         Self::new_with_node_name_opt(None).await
@@ -1094,7 +1076,6 @@ impl NetworkNode {
 
     pub async fn new_with_config(config: NetworkNodeConfig) -> Self {
         let NetworkNodeConfig {
-            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1237,7 +1218,6 @@ impl NetworkNode {
         };
 
         Self {
-            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1264,7 +1244,6 @@ impl NetworkNode {
 
     pub fn get_node_config(&self) -> NetworkNodeConfig {
         NetworkNodeConfig {
-            #[cfg(not(target_arch = "wasm32"))]
             base_dir: self.base_dir.clone(),
             node_name: self.node_name.clone(),
             store: self.store.clone(),
@@ -1581,13 +1560,14 @@ impl NetworkNode {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::test]
 async fn test_connect_to_other_node() {
     let mut node_a = NetworkNode::new().await;
     let node_b = NetworkNode::new().await;
     node_a.connect_to(&node_b).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::test]
 async fn test_restart_network_node() {
     let mut node = NetworkNode::new().await;

@@ -1,4 +1,6 @@
-use super::test_utils::{init_tracing, NetworkNode};
+ #[cfg(not(target_arch = "wasm32"))]
+ use super::test_utils::NetworkNode;
+use super::test_utils::{init_tracing};
 use crate::ckb::tests::test_utils::complete_commitment_tx;
 use crate::fiber::channel::{ChannelState, CloseFlags, UpdateCommand, XUDT_COMPATIBLE_WITNESS};
 use crate::fiber::config::{DEFAULT_TLC_EXPIRY_DELTA, MAX_PAYMENT_TLC_EXPIRY_LIMIT};

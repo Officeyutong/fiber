@@ -1,4 +1,8 @@
-use super::test_utils::{init_tracing, NetworkNode};
+use super::test_utils::init_tracing;
+#[cfg(not(target_arch = "wasm32"))]
+use super::test_utils::NetworkNode;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::fiber::tests::test_utils::{NetworkNodeConfig, NetworkNodeConfigBuilder};
 use crate::{
     ckb::{
         tests::test_utils::{
@@ -12,7 +16,6 @@ use crate::{
         gossip::{GossipActorMessage, GossipMessageStore},
         graph::ChannelUpdateInfo,
         network::{NetworkActorStateStore, SendPaymentCommand, SendPaymentData},
-        tests::test_utils::{NetworkNodeConfig, NetworkNodeConfigBuilder},
         types::{
             BroadcastMessage, BroadcastMessageWithTimestamp, BroadcastMessagesFilterResult,
             ChannelAnnouncement, ChannelUpdateChannelFlags, Cursor, GossipMessage,
@@ -114,7 +117,7 @@ fn create_fake_node_announcement_message() -> NodeAnnouncement {
 }
 
 #[crate::test]
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_save_our_own_node_announcement_to_graph() {
     let mut node = NetworkNode::new().await;
     ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;

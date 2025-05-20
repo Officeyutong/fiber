@@ -43,7 +43,7 @@ use std::collections::HashSet;
 use tracing::debug;
 use tracing::error;
 
-#[cfg(not(target_arch = "wasm32"))]
+
 #[crate::test]
 async fn test_send_payment_custom_records() {
     let (nodes, _channels) = create_n_nodes_network(
@@ -100,7 +100,7 @@ async fn test_send_payment_custom_records() {
 // This test will send two payments from node_0 to node_1, the first payment will run
 // with dry_run, the second payment will run without dry_run. Both payments will be successful.
 // But only one payment balance will be deducted from node_0.
-#[cfg(not(target_arch = "wasm32"))]
+
 #[crate::test]
 async fn test_send_payment_for_direct_channel_and_dry_run() {
     init_tracing();
@@ -875,6 +875,7 @@ async fn test_send_payment_payself_with_private_channel_cycle() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_with_private_multiple_channel_hints_fallback() {
     init_tracing();
     let (nodes, _channels) = create_n_nodes_network(
@@ -1937,7 +1938,7 @@ async fn test_send_payment_send_with_wrong_hop() {
         .to_string()
         .contains("Failed to send onion packet with error UnknownNextPeer"));
 }
-#[cfg(not(target_arch = "wasm32"))]
+
 #[crate::test]
 async fn test_network_send_payment_randomly_send_each_other() {
     init_tracing();
@@ -2104,6 +2105,7 @@ async fn test_network_three_nodes_two_channels_send_each_other() {
 }
 
 #[crate::test]
+
 async fn test_network_three_nodes_send_each_other() {
     init_tracing();
 
@@ -2200,6 +2202,7 @@ async fn test_network_three_nodes_send_each_other() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_bench_test() {
     init_tracing();
 
@@ -2253,6 +2256,7 @@ async fn test_send_payment_bench_test() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_three_nodes_wait_succ_bench_test() {
     init_tracing();
 
@@ -2288,6 +2292,7 @@ async fn test_send_payment_three_nodes_wait_succ_bench_test() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_three_nodes_send_each_other_bench_test() {
     init_tracing();
 
@@ -2327,6 +2332,7 @@ async fn test_send_payment_three_nodes_send_each_other_bench_test() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_three_nodes_send_each_other_no_wait() {
     init_tracing();
 
@@ -2408,6 +2414,7 @@ async fn test_send_payment_three_nodes_send_each_other_no_wait() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_three_nodes_bench_test() {
     init_tracing();
 
@@ -2531,6 +2538,7 @@ async fn test_send_payment_three_nodes_bench_test() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_middle_hop_stopped() {
     init_tracing();
 
@@ -2572,6 +2580,7 @@ async fn test_send_payment_middle_hop_stopped() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_middle_hop_stopped_retry_longer_path() {
     init_tracing();
 
@@ -2645,6 +2654,7 @@ async fn test_send_payment_middle_hop_stopped_retry_longer_path() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_max_value_in_flight_in_first_hop() {
     // https://github.com/nervosnetwork/fiber/issues/450
 
@@ -2719,6 +2729,7 @@ async fn test_send_payment_max_value_in_flight_in_first_hop() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_target_hop_stopped() {
     init_tracing();
 
@@ -2759,6 +2770,7 @@ async fn test_send_payment_target_hop_stopped() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_middle_hop_balance_is_not_enough() {
     // https://github.com/nervosnetwork/fiber/issues/286
     init_tracing();
@@ -2792,6 +2804,7 @@ async fn test_send_payment_middle_hop_balance_is_not_enough() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_middle_hop_update_fee_send_payment_failed() {
     init_tracing();
 
@@ -2830,6 +2843,7 @@ async fn test_send_payment_middle_hop_update_fee_send_payment_failed() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_middle_hop_update_fee_multiple_payments() {
     // https://github.com/nervosnetwork/fiber/issues/480
     init_tracing();
@@ -3074,6 +3088,7 @@ async fn test_send_payment_self_with_two_nodes() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_self_with_mixed_channel() {
     // #678, payself with mixed channel got wrong
     init_tracing();
@@ -3201,6 +3216,7 @@ async fn test_send_payment_self_with_mixed_channel() {
 }
 
 #[crate::test]
+
 async fn test_send_payment_with_invalid_tlc_expiry() {
     init_tracing();
 
@@ -3262,6 +3278,7 @@ async fn test_send_payment_with_invalid_tlc_expiry() {
 }
 
 #[crate::test]
+
 async fn test_send_payself_with_invalid_tlc_expiry() {
     init_tracing();
 
@@ -3323,6 +3340,7 @@ async fn test_send_payself_with_invalid_tlc_expiry() {
 }
 
 #[crate::test]
+
 async fn test_send_payself_with_single_limit_tlc_expiry() {
     init_tracing();
 
@@ -3508,7 +3526,7 @@ async fn test_send_payment_with_one_node_stop() {
             }
             ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -3670,7 +3688,7 @@ async fn test_send_payment_shutdown_cooperative() {
             "node_2_channel_actor_state: {:?}",
             node_2_channel_actor_state.state
         );
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -3754,7 +3772,7 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
             }
 
             count += 1;
-            #[cfg(not(target_arch = "wasm32"))]
+            
             ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
             #[cfg(target_arch = "wasm32")]
             ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -3776,7 +3794,7 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
             "node_2_channel_actor_state: {:?}",
             node_2_channel_actor_state.state
         );
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -3886,7 +3904,7 @@ async fn test_send_payment_shutdown_under_send_each_other() {
             i, node_3_channel_actor_state.state,
         );
         node_3_channel_actor_state.tlc_state.debug();
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -3955,7 +3973,7 @@ async fn run_shutdown_with_payment_send(sender: usize, receiver: usize) {
             i, node_2_channel_actor_state.state,
         );
         node_2_channel_actor_state.tlc_state.debug();
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -4152,7 +4170,7 @@ async fn test_send_payment_middle_hop_stop_send_payment_then_start() {
         assert_eq!(status, PaymentSessionStatus::Success);
 
         nodes[restart_node_index].stop().await;
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -4206,7 +4224,7 @@ async fn test_send_payment_middle_hop_stop_send_payment_then_start() {
                 break;
             } else {
                 count += 1;
-                #[cfg(not(target_arch = "wasm32"))]
+                
                 ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
                 #[cfg(target_arch = "wasm32")]
                 ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
@@ -4636,7 +4654,7 @@ async fn test_send_payment_with_reconnect_two_times() {
         // reconnect peer
         node0.connect_to_nonblocking(&node1).await;
 
-        #[cfg(not(target_arch = "wasm32"))]
+        
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         #[cfg(target_arch = "wasm32")]
         ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;

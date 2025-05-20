@@ -1,10 +1,13 @@
+#[cfg(not(target_arch = "wasm32"))]
 mod channel;
 mod gossip;
 mod graph;
 mod hash_algorithm;
 mod history;
+#[cfg(not(target_arch = "wasm32"))]
 mod network;
 mod path;
+#[cfg(not(target_arch = "wasm32"))]
 mod payment;
 #[cfg(not(target_arch = "wasm32"))]
 mod rpc;
