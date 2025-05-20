@@ -370,8 +370,15 @@ impl FiberConfig {
     }
 
     fn inner_read_or_generate_secret_key(&self) -> Result<super::KeyPair> {
-        self.create_base_dir()?;
-        super::key::KeyPair::read_or_generate(&self.base_dir().join("sk")).map_err(Into::into)
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            self.create_base_dir()?;
+            return super::key::KeyPair::read_or_generate(&self.base_dir().join("sk"))
+                .map_err(Into::into);
+        }
+        // For wasm, only generate the key. It can't perform file IO
+        #[cfg(target_arch = "wasm32")]
+        return Ok(super::key::KeyPair::generate_random_key());
     }
 
     // `OnceCell` will make all actors in UI tests use the same secret key.

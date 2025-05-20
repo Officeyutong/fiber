@@ -1,12 +1,17 @@
-#[cfg(not(target_arch = "wasm32"))]
-mod native;
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::{Batch, DbDirection, IteratorMode, Store};
+cfg_if::cfg_if! {
+    if #[cfg(not(target_arch = "wasm32"))] {
+        mod native;
+        pub use native::{Batch, DbDirection, IteratorMode, Store};
 
-#[cfg(target_arch = "wasm32")]
-mod browser;
-#[cfg(target_arch = "wasm32")]
-pub use browser::{Batch, DbDirection, IteratorMode, Store};
+    } else if #[cfg(all(target_arch = "wasm32",not(test)))]{
+        mod browser;
+        pub use browser::{Batch, DbDirection, IteratorMode, Store};
+
+    } else if #[cfg(all(target_arch = "wasm32",test))]{
+        mod browser_test;
+        pub use browser_test::{Batch, DbDirection, IteratorMode, Store};
+    }
+}
 
 use std::path::Path;
 

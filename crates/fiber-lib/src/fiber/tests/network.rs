@@ -114,9 +114,10 @@ fn create_fake_node_announcement_message() -> NodeAnnouncement {
 }
 
 #[crate::test]
+#[cfg(not(target_arch="wasm32"))]
 async fn test_save_our_own_node_announcement_to_graph() {
     let mut node = NetworkNode::new().await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let nodes = node.get_network_graph_nodes().await;
     assert_eq!(nodes.len(), 1);
@@ -137,7 +138,7 @@ async fn test_set_announced_addrs_with_invalid_peer_id() {
             .build(),
     )
     .await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let nodes = node.get_network_graph_nodes().await;
     assert_eq!(nodes.len(), 1);
@@ -147,7 +148,7 @@ async fn test_set_announced_addrs_with_invalid_peer_id() {
 #[crate::test]
 async fn test_set_announced_addrs_with_valid_peer_id() {
     let mut node = NetworkNode::new().await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
 
     let peer_id = node.get_peer_id();
@@ -168,7 +169,7 @@ async fn test_set_announced_addrs_with_valid_peer_id() {
         .build();
 
     let mut node = NetworkNode::new_with_config(cfg).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let nodes = node.get_network_graph_nodes().await;
     assert_eq!(nodes.len(), 1);
@@ -191,7 +192,7 @@ async fn test_set_announced_addrs_without_p2p() {
             .build(),
     )
     .await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let peer_id = node.get_peer_id();
     let peer_id_bytes = peer_id.clone().into_bytes();
@@ -259,7 +260,7 @@ async fn test_sync_channel_announcement_on_startup() {
         TxStatus::Committed(..)
     ));
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let channels = node2.get_network_graph_channels().await;
     assert!(!channels.is_empty());
 }
@@ -277,7 +278,7 @@ async fn test_node1_node2_channel_update() {
         BroadcastMessage::ChannelAnnouncement(channel_announcement)
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let channel_update_of_node1 = channel_context.create_channel_update_of_node1(
         ChannelUpdateChannelFlags::empty(),
@@ -291,7 +292,7 @@ async fn test_node1_node2_channel_update() {
         BroadcastMessage::ChannelUpdate(channel_update_of_node1.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let new_channel_info = node.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(
@@ -311,7 +312,7 @@ async fn test_node1_node2_channel_update() {
         BroadcastMessage::ChannelUpdate(channel_update_of_node2.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let new_channel_info = node.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(
@@ -336,12 +337,12 @@ async fn test_channel_update_version() {
         BroadcastMessage::ChannelAnnouncement(channel_context.channel_announcement.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let mut channel_updates = vec![];
     for i in 0u8..3 {
         // Make sure the timestamp is different.
-        tokio::time::sleep(tokio::time::Duration::from_millis(3)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(3)).await;
         channel_updates.push(channel_context.create_channel_update_of_node1(
             ChannelUpdateChannelFlags::empty(),
             i.into(),
@@ -358,7 +359,7 @@ async fn test_channel_update_version() {
         BroadcastMessage::ChannelUpdate(channel_update_2.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let new_channel_info = node.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(
         new_channel_info.update_of_node1,
@@ -371,7 +372,7 @@ async fn test_channel_update_version() {
         BroadcastMessage::ChannelUpdate(channel_update_1.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let new_channel_info = node.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(
         new_channel_info.update_of_node1,
@@ -384,7 +385,7 @@ async fn test_channel_update_version() {
         BroadcastMessage::ChannelUpdate(channel_update_3.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let new_channel_info = node.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(
         new_channel_info.update_of_node1,
@@ -424,13 +425,13 @@ async fn test_query_missing_broadcast_message() {
         BroadcastMessage::ChannelUpdate(channel_update.clone())
             .create_broadcast_messages_filter_result(),
     );
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let node1_channel_info = node1.get_network_graph_channel(&out_point).await.unwrap();
     assert_ne!(node1_channel_info.update_of_node1, None);
 
     let node2 = NetworkNode::new().await;
     node1.connect_to(&node2).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     // Verify that node2 still does not have channel info after active syncing done.
     let node2_channel_info = node2.get_network_graph_channel(&out_point).await;
     assert_eq!(node2_channel_info, None);
@@ -444,7 +445,7 @@ async fn test_query_missing_broadcast_message() {
         ))
         .expect("send message to network actor");
     node2.submit_tx(funding_tx.clone()).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let node2_channel_info = node2.get_network_graph_channel(&out_point).await.unwrap();
     assert_eq!(node1_channel_info, node2_channel_info);
 }
@@ -475,7 +476,7 @@ async fn test_prune_channel_announcement_and_receive_channel_update() {
     node1.submit_tx(funding_tx.clone()).await;
     node2.submit_tx(funding_tx.clone()).await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(200)).await;
     assert_ne!(node1.get_network_graph_channel(&out_point).await, None);
     assert_ne!(node2.get_network_graph_channel(&out_point).await, None);
 
@@ -484,7 +485,7 @@ async fn test_prune_channel_announcement_and_receive_channel_update() {
         now_timestamp_as_millis_u64() + 1,
     ));
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(200)).await;
     // Even though node2 has pruned the channel messages from store, it still have
     // the channel information in the network graph. This information is only expected
     // to be removed after a restart.
@@ -516,7 +517,7 @@ async fn test_prune_channel_announcement_and_receive_channel_update() {
             .create_broadcast_messages_filter_result(),
     );
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(200)).await;
     let channel = node2
         .get_network_graph_channel(&out_point)
         .await
@@ -566,7 +567,7 @@ async fn test_sync_node_announcement_version() {
             .create_broadcast_messages_filter_result(),
     );
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let node_info = node.get_network_graph_node(&test_pub_key).await;
     match node_info {
         Some(n) if n.timestamp == timestamp_version2 => {}
@@ -582,7 +583,7 @@ async fn test_sync_node_announcement_version() {
             .create_broadcast_messages_filter_result(),
     );
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let node_info = node.get_network_graph_node(&test_pub_key).await;
     match node_info {
         Some(n) if n.timestamp == timestamp_version2 => {}
@@ -598,7 +599,7 @@ async fn test_sync_node_announcement_version() {
             .create_broadcast_messages_filter_result(),
     );
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
     let node_info = node.get_network_graph_node(&test_pub_key).await;
     match node_info {
         Some(n) if n.timestamp == timestamp_version3 => {}
@@ -631,7 +632,7 @@ async fn test_sync_node_announcement_on_startup() {
     node1.connect_to(&node2).await;
 
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     let node_info = node1.get_network_graph_node(&test_pub_key).await;
     assert!(node_info.is_some());
@@ -645,7 +646,7 @@ async fn test_sync_node_announcement_of_connected_nodes() {
     let [node1, node2] = NetworkNode::new_n_interconnected_nodes().await;
 
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     let node_info = node1.get_network_graph_node(&node2.get_public_key()).await;
     assert!(node_info.is_some());
@@ -678,7 +679,7 @@ async fn test_sync_node_announcement_after_restart() {
     node2.connect_to(&node1).await;
 
     // Wait for the broadcast message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let node_info = node1.get_network_graph_node(&test_pub_key).await;
     assert!(node_info.is_some());
@@ -731,7 +732,7 @@ async fn test_persisting_announced_nodes() {
         BroadcastMessage::NodeAnnouncement(announcement).create_broadcast_messages_filter_result(),
     );
     // Wait for the above message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     node.stop().await;
     let peers = node
@@ -777,7 +778,7 @@ async fn test_saving_and_connecting_to_node() {
         .expect("send message to network actor");
 
     // Wait for the above message to be processed.
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     node2.restart().await;
 

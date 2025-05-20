@@ -1323,6 +1323,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "const-random"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1776,6 +1786,7 @@ dependencies = [
  "clap",
  "clap-serde-derive",
  "console",
+ "console_error_panic_hook",
  "either",
  "fiber-sphinx",
  "futures",
@@ -1813,6 +1824,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "wasm-bindgen-test",
+ "web-time",
 ]
 
 [[package]]
@@ -5631,6 +5643,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
+ "serde",
  "wasm-bindgen",
 ]
 

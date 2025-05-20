@@ -33,16 +33,17 @@ use crate::invoice::CkbInvoice;
 use crate::invoice::Currency;
 use crate::invoice::InvoiceBuilder;
 use crate::now_timestamp_as_millis_u64;
+use crate::platform::SystemTime;
 use crate::NetworkServiceEvent;
 use ckb_types::packed::Script;
 use ckb_types::{core::tx_pool::TxStatus, packed::OutPoint};
 use ractor::call;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::time::SystemTime;
 use tracing::debug;
 use tracing::error;
 
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_send_payment_custom_records() {
     let (nodes, _channels) = create_n_nodes_network(
@@ -58,7 +59,7 @@ async fn test_send_payment_custom_records() {
     let target_pubkey = node_1.pubkey;
 
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let data: HashMap<_, _> = vec![
         (1, "hello".to_string().into_bytes()),
@@ -79,7 +80,7 @@ async fn test_send_payment_custom_records() {
 
     eprintln!("res: {:?}", res);
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
     let payment_hash = res.unwrap().payment_hash;
 
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -99,6 +100,7 @@ async fn test_send_payment_custom_records() {
 // This test will send two payments from node_0 to node_1, the first payment will run
 // with dry_run, the second payment will run without dry_run. Both payments will be successful.
 // But only one payment balance will be deducted from node_0.
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_send_payment_for_direct_channel_and_dry_run() {
     init_tracing();
@@ -272,7 +274,7 @@ async fn test_send_payment_fee_rate() {
     node_0.submit_tx(funding_tx_1).await;
 
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let res = node_0
         .send_payment_keysend(&node_2, 10_000_000, false)
@@ -327,7 +329,7 @@ async fn test_send_payment_over_private_channel() {
         .await;
 
         // sleep for a while
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
         let source_node = &mut node1;
         let target_pubkey = node3.pubkey;
@@ -600,7 +602,7 @@ async fn test_send_payment_with_private_channel_hints() {
 
         let outpoint = funding_tx.output_pts_iter().next().unwrap();
         // sleep for a while
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
         let source_node = &mut node1;
         let target_pubkey = node3.pubkey;
@@ -664,7 +666,7 @@ async fn test_send_payment_hophint_for_middle_channels_does_not_work() {
         .expect("get funding tx");
 
     let private_channel_outpoint = funding_tx.output_pts_iter().next().unwrap();
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let res = node1
         .send_payment(SendPaymentCommand {
@@ -791,7 +793,7 @@ async fn test_send_payment_with_private_channel_hints_fallback() {
 
     let outpoint = funding_tx.output_pts_iter().next().unwrap();
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let source_node = &mut node1;
     let target_pubkey = node3.pubkey;
@@ -855,7 +857,7 @@ async fn test_send_payment_payself_with_private_channel_cycle() {
         .expect("get funding tx");
 
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let source_node = &mut node1;
 
@@ -914,7 +916,7 @@ async fn test_send_payment_with_private_multiple_channel_hints_fallback() {
     let outpoint2 = create_channel(&mut node2, &mut node3, 40000000000).await;
 
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let source_node = &mut node1;
     let target_pubkey = node3.pubkey;
@@ -1668,7 +1670,7 @@ async fn test_send_payment_with_router_with_multiple_channels() {
     assert_eq!(used_channels.len(), 4);
     assert_eq!(used_channels[1], channel_3_funding_tx);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2500)).await;
 
     // try channel_2
     let channel_2_funding_tx = node_0.get_channel_funding_tx(&channels[2]).unwrap();
@@ -1822,7 +1824,7 @@ async fn test_send_payment_two_nodes_with_router_and_multiple_channels() {
     assert_eq!(used_channels[0], channel_1_funding_tx);
     assert_eq!(used_channels[1], channel_3_funding_tx);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let balance = node_0.get_local_balance_from_channel(channels[1]);
     assert_eq!(balance, old_balance - 60000000 - res.fee);
@@ -1935,7 +1937,7 @@ async fn test_send_payment_send_with_wrong_hop() {
         .to_string()
         .contains("Failed to send onion packet with error UnknownNextPeer"));
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_randomly_send_each_other() {
     init_tracing();
@@ -1947,7 +1949,7 @@ async fn test_network_send_payment_randomly_send_each_other() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_a_old_balance = node_a.get_local_balance_from_channel(new_channel_id);
     let node_b_old_balance = node_b.get_local_balance_from_channel(new_channel_id);
 
@@ -1959,7 +1961,7 @@ async fn test_network_send_payment_randomly_send_each_other() {
     let mut all_sent = vec![];
     for _i in 1..8 {
         let rand_wait_time = rand::random::<u64>() % 1000;
-        tokio::time::sleep(tokio::time::Duration::from_millis(rand_wait_time)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(rand_wait_time)).await;
 
         let rand_num = rand::random::<u64>() % 2;
         let amount = rand::random::<u128>() % 10000 + 1;
@@ -1990,7 +1992,7 @@ async fn test_network_send_payment_randomly_send_each_other() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(4000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(4000)).await;
     for (a_sent, amount, payment_hash, create_status) in all_sent {
         let message = |rpc_reply| -> NetworkActorMessage {
             NetworkActorMessage::Command(NetworkActorCommand::GetPayment(payment_hash, rpc_reply))
@@ -2063,7 +2065,7 @@ async fn test_network_three_nodes_two_channels_send_each_other() {
     let [node_a, node_b, node_c] = nodes.try_into().expect("3 nodes");
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_b_old_balance_channel_0 = node_b.get_local_balance_from_channel(channels[0]);
     let node_b_old_balance_channel_1 = node_b.get_local_balance_from_channel(channels[1]);
 
@@ -2211,7 +2213,7 @@ async fn test_send_payment_bench_test() {
     .await;
     let [node_0, node_1, node_2] = nodes.try_into().expect("3 nodes");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let mut all_sent = HashSet::new();
 
@@ -2223,10 +2225,10 @@ async fn test_send_payment_bench_test() {
         eprintln!("payment: {:?}", payment);
         all_sent.insert(payment.payment_hash);
         eprintln!("send: {} payment_hash: {:?} sent", i, payment.payment_hash);
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     loop {
         for payment_hash in all_sent.clone().iter() {
@@ -2236,7 +2238,7 @@ async fn test_send_payment_bench_test() {
                 eprintln!("payment_hash: {:?} success", payment_hash);
                 all_sent.remove(payment_hash);
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         let res = node_0.node_info().await;
         eprintln!("node0 node_info: {:?}", res);
@@ -2264,7 +2266,7 @@ async fn test_send_payment_three_nodes_wait_succ_bench_test() {
     .await;
     let [node_0, _node_1, node_2] = nodes.try_into().expect("3 nodes");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let mut all_sent = vec![];
 
@@ -2278,11 +2280,11 @@ async fn test_send_payment_three_nodes_wait_succ_bench_test() {
             "send: {} payment_hash: {:?} sentxx",
             i, payment.payment_hash
         );
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1)).await;
 
         node_0.wait_until_success(payment.payment_hash).await;
     }
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 }
 
 #[crate::test]
@@ -2299,7 +2301,7 @@ async fn test_send_payment_three_nodes_send_each_other_bench_test() {
     .await;
     let [node_0, _node_1, node_2] = nodes.try_into().expect("3 nodes");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let mut all_sent = vec![];
 
@@ -2317,7 +2319,7 @@ async fn test_send_payment_three_nodes_send_each_other_bench_test() {
             .unwrap();
         all_sent.push(payment2.payment_hash);
         eprintln!("send: {} payment_hash: {:?} sent", i, payment2.payment_hash);
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
 
         node_0.wait_until_success(payment1.payment_hash).await;
         node_2.wait_until_success(payment2.payment_hash).await;
@@ -2384,7 +2386,7 @@ async fn test_send_payment_three_nodes_send_each_other_no_wait() {
             break;
         }
     }
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
     let new_node_0_balance = nodes[0].get_local_balance_from_channel(channels[0]);
     let new_node_2_balance = nodes[2].get_local_balance_from_channel(channels[1]);
     eprintln!(
@@ -2418,7 +2420,7 @@ async fn test_send_payment_three_nodes_bench_test() {
     )
     .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let mut all_sent = HashSet::new();
     let mut node_2_got_fee = 0;
@@ -2555,7 +2557,7 @@ async fn test_send_payment_middle_hop_stopped() {
 
     // node_4 stopped
     node_4.stop().await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // when node_4 stopped, node 0 learned that channel 0 -> 4 was not available
     // so it will try another path 0 -> 1 -> 2 -> 3
@@ -2600,7 +2602,7 @@ async fn test_send_payment_middle_hop_stopped_retry_longer_path() {
 
     // node_2 stopped
     node_2.stop().await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_0
         .send_payment_keysend(&node_3, 1000, true)
@@ -2665,7 +2667,7 @@ async fn test_send_payment_max_value_in_flight_in_first_hop() {
         .await
     };
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_0
         .send_payment_keysend(&node_1, 100000000 + 1, false)
@@ -2702,7 +2704,7 @@ async fn test_send_payment_max_value_in_flight_in_first_hop() {
         .await
     };
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_0
         .send_payment_keysend(&node_1, 100000000 + 1, false)
@@ -2742,7 +2744,7 @@ async fn test_send_payment_target_hop_stopped() {
 
     // node_4 stopped
     node_4.stop().await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_0
         .send_payment_keysend(&node_4, 1000, false)
@@ -2850,7 +2852,7 @@ async fn test_send_payment_middle_hop_update_fee_multiple_payments() {
             .await
             .unwrap();
         all_sent.insert(res.payment_hash);
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
     }
 
     nodes[2]
@@ -2865,7 +2867,7 @@ async fn test_send_payment_middle_hop_update_fee_multiple_payments() {
         )
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     loop {
         for i in 0..4 {
@@ -2879,7 +2881,7 @@ async fn test_send_payment_middle_hop_update_fee_multiple_payments() {
                 eprintln!("payment_hash: {:?} got status : {:?}", payment_hash, status);
                 all_sent.remove(payment_hash);
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         if all_sent.is_empty() {
             break;
@@ -2918,7 +2920,7 @@ async fn test_send_payment_middle_hop_update_fee_should_recovery() {
             .await
             .unwrap();
         all_sent.insert(res.payment_hash);
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
     }
 
     nodes[1]
@@ -2933,7 +2935,7 @@ async fn test_send_payment_middle_hop_update_fee_should_recovery() {
         )
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let mut succ_count = 0;
     loop {
@@ -2951,7 +2953,7 @@ async fn test_send_payment_middle_hop_update_fee_should_recovery() {
                 }
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         if all_sent.is_empty() {
             break;
@@ -3018,7 +3020,7 @@ async fn run_complex_network_with_params(
                 result.push((payment_hash, status));
                 all_sent.remove(&(i, payment_hash));
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         if all_sent.is_empty() {
             break;
@@ -3491,7 +3493,7 @@ async fn test_send_payment_with_one_node_stop() {
         if i == 5 {
             let _ = nodes[3].stop().await;
         }
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
     }
 
     let mut failed_count = 0;
@@ -3504,9 +3506,12 @@ async fn test_send_payment_with_one_node_stop() {
                 failed_count += 1;
                 all_sent.remove(payment_hash);
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         check_count += 1;
         if all_sent.is_empty() {
             break;
@@ -3541,7 +3546,7 @@ async fn test_send_payment_shutdown_with_force() {
         if i == 5 {
             let _ = nodes[3].send_shutdown(channels[2], true).await;
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
             nodes[3]
                 .send_channel_shutdown_tx_confirmed_event(
                     nodes[2].peer_id.clone(),
@@ -3549,7 +3554,7 @@ async fn test_send_payment_shutdown_with_force() {
                     true,
                 )
                 .await;
-            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
         }
     }
 
@@ -3572,7 +3577,7 @@ async fn test_send_payment_shutdown_with_force() {
                 all_sent.remove(payment_hash);
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         let elapsed = SystemTime::now()
             .duration_since(started)
@@ -3649,7 +3654,7 @@ async fn test_send_payment_shutdown_cooperative() {
                 all_sent.remove(payment_hash);
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
     }
     assert_eq!(failed_count, all_tx_count);
@@ -3665,7 +3670,10 @@ async fn test_send_payment_shutdown_cooperative() {
             "node_2_channel_actor_state: {:?}",
             node_2_channel_actor_state.state
         );
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         if !node_2_channel_actor_state.any_tlc_pending()
             && !node_3_channel_actor_state.any_tlc_pending()
         {
@@ -3673,7 +3681,7 @@ async fn test_send_payment_shutdown_cooperative() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_3_channel_actor_state = nodes[3].get_channel_actor_state(channels[2]);
     assert_eq!(
@@ -3716,7 +3724,7 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
     }
 
     // sleep for a while to make sure some payments may Success
-    tokio::time::sleep(tokio::time::Duration::from_millis(4000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(4000)).await;
 
     loop {
         let res = nodes[2].send_shutdown(channels[2], false).await;
@@ -3746,7 +3754,10 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
             }
 
             count += 1;
-            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+            #[cfg(not(target_arch = "wasm32"))]
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+            #[cfg(target_arch = "wasm32")]
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         }
     }
     debug!(
@@ -3765,7 +3776,10 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
             "node_2_channel_actor_state: {:?}",
             node_2_channel_actor_state.state
         );
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         if !node_2_channel_actor_state.any_tlc_pending()
             && !node_3_channel_actor_state.any_tlc_pending()
         {
@@ -3773,7 +3787,7 @@ async fn test_send_payment_shutdown_cooperative_sender_sent() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_3_channel_actor_state = nodes[3].get_channel_actor_state(channels[2]);
     assert_eq!(
@@ -3843,7 +3857,7 @@ async fn test_send_payment_shutdown_under_send_each_other() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     for _i in 0..20 {
         let res = nodes[3].send_shutdown(channels[2], false).await;
@@ -3852,7 +3866,7 @@ async fn test_send_payment_shutdown_under_send_each_other() {
             break;
         }
         debug!("shutdown res: {:?}", res);
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 
     for i in 0..30 {
@@ -3872,7 +3886,10 @@ async fn test_send_payment_shutdown_under_send_each_other() {
             i, node_3_channel_actor_state.state,
         );
         node_3_channel_actor_state.tlc_state.debug();
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         if !node_2_channel_actor_state.any_tlc_pending()
             && !node_3_channel_actor_state.any_tlc_pending()
         {
@@ -3880,7 +3897,7 @@ async fn test_send_payment_shutdown_under_send_each_other() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_3_channel_actor_state = nodes[3].get_channel_actor_state(channels[2]);
     assert_eq!(
@@ -3917,7 +3934,7 @@ async fn run_shutdown_with_payment_send(sender: usize, receiver: usize) {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let _ = nodes[2].send_shutdown(channels[1], false).await;
 
     // there will be no pending tlcs
@@ -3938,7 +3955,10 @@ async fn run_shutdown_with_payment_send(sender: usize, receiver: usize) {
             i, node_2_channel_actor_state.state,
         );
         node_2_channel_actor_state.tlc_state.debug();
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         if !node_1_channel_actor_state.any_tlc_pending()
             && !node_2_channel_actor_state.any_tlc_pending()
         {
@@ -3946,7 +3966,7 @@ async fn run_shutdown_with_payment_send(sender: usize, receiver: usize) {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_1_channel_actor_state = nodes[1].get_channel_actor_state(channels[1]);
     error!("node_1 state: {:?}", node_1_channel_actor_state.state);
@@ -4006,7 +4026,7 @@ async fn test_shutdown_with_pending_tlc() {
     let res = nodes[1].send_shutdown(channels[0], false).await;
     assert!(res.is_ok());
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_0_channel_actor_state = nodes[0].get_channel_actor_state(channels[0]);
     assert!(node_0_channel_actor_state.any_tlc_pending());
@@ -4041,7 +4061,7 @@ async fn test_shutdown_with_pending_tlc() {
     .expect("node_b alive");
     assert!(remove_tlc_result.is_ok());
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_0_channel_actor_state = nodes[0].get_channel_actor_state(channels[0]);
     assert_eq!(
         node_0_channel_actor_state.state,
@@ -4085,7 +4105,7 @@ async fn test_send_payment_middle_hop_restart_will_be_ok() {
         nodes[restart_node_index].restart().await;
 
         // wait for the node to be ready after reestablish channel
-        tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(5000)).await;
 
         let res = nodes[0]
             .send_payment_keysend(&nodes[3], payment_amount, false)
@@ -4132,7 +4152,10 @@ async fn test_send_payment_middle_hop_stop_send_payment_then_start() {
         assert_eq!(status, PaymentSessionStatus::Success);
 
         nodes[restart_node_index].stop().await;
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
         let res = nodes[0]
             .send_payment_keysend(&nodes[3], payment_amount, false)
@@ -4145,11 +4168,11 @@ async fn test_send_payment_middle_hop_stop_send_payment_then_start() {
         let status = nodes[0].get_payment_status(payment_hash).await;
         assert_eq!(status, PaymentSessionStatus::Failed);
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(4 * 1000)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(4 * 1000)).await;
 
         // now we start nodes[2], expect the payment will success
         nodes[restart_node_index].start().await;
-        tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(5000)).await;
 
         // because the probability of the path is not 100% after the node is restarted
         // send normal payment amount will fail at the beginning
@@ -4183,7 +4206,10 @@ async fn test_send_payment_middle_hop_stop_send_payment_then_start() {
                 break;
             } else {
                 count += 1;
-                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                #[cfg(not(target_arch = "wasm32"))]
+                ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+                #[cfg(target_arch = "wasm32")]
+                ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
                 eprintln!("retry to wait amount increasing: {:?}", count);
             }
         }
@@ -4240,7 +4266,7 @@ async fn test_send_payment_sync_up_new_channel_is_added() {
         node.add_channel_tx(channel_id, funding_tx_hash);
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let res = node_0
         .send_payment_keysend(&node_3, payment_amount, false)
@@ -4297,7 +4323,7 @@ async fn test_send_payment_remove_tlc_with_preimage_will_retry() {
         })
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     // reconnect node_0 and node_1
     node_0.connect_to_nonblocking(&node_1).await;
@@ -4316,7 +4342,7 @@ async fn test_send_payment_remove_tlc_with_preimage_will_retry() {
             if status == PaymentSessionStatus::Success {
                 payments.remove(payment_hash);
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         }
         if payments.is_empty() {
             break;
@@ -4397,7 +4423,7 @@ async fn test_send_payment_invoice_cancel_multiple_ops() {
         node_0.wait_until_created(res.payment_hash).await;
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     loop {
         for payment_hash in payments.clone().iter() {
@@ -4407,7 +4433,7 @@ async fn test_send_payment_invoice_cancel_multiple_ops() {
                 payments.remove(payment_hash);
             }
             assert_ne!(status, PaymentSessionStatus::Success);
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
         }
         if payments.is_empty() {
             break;
@@ -4468,7 +4494,7 @@ async fn test_send_payment_no_preimage_invoice_will_make_payment_failed() {
         node_0.wait_until_created(res.payment_hash).await;
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     for payment_hash in payments.iter() {
         node_0.wait_until_failed(*payment_hash).await;
@@ -4605,12 +4631,15 @@ async fn test_send_payment_with_reconnect_two_times() {
             })
             .await;
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
         // reconnect peer
         node0.connect_to_nonblocking(&node1).await;
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
         // wait for the payment to be retried
         for _i in 0..20 {
             assert!(node0.get_triggered_unexpected_events().await.is_empty());
@@ -4630,7 +4659,7 @@ async fn test_send_payment_with_reconnect_two_times() {
                         payment_session.retried_times
                     );
                 }
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
             }
             if payments.is_empty() {
                 break;

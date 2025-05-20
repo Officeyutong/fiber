@@ -1,3 +1,4 @@
+use crate::platform::{SystemTime, UNIX_EPOCH};
 use anyhow::{anyhow, Context, Result};
 use futures::StreamExt as _;
 use hex::ToHex;
@@ -12,7 +13,7 @@ use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef};
 use serde::Deserialize;
 use std::future::Future;
 use std::str::FromStr;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 use tokio::{select, time::sleep};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 

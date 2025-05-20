@@ -58,7 +58,7 @@ fn test_derive_private_and_public_tlc_keys() {
     let derived_pubkey = derive_tlc_pubkey(&privkey.pubkey(), &per_commitment_point);
     assert_eq!(derived_privkey.pubkey(), derived_pubkey);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_open_channel_to_peer() {
     let [node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
@@ -98,7 +98,7 @@ async fn test_open_channel_to_peer() {
         })
         .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_open_and_accept_channel() {
     let [node_a, mut node_b] = NetworkNode::new_n_interconnected_nodes().await;
@@ -158,7 +158,7 @@ async fn test_open_and_accept_channel() {
         .expect("node_b alive")
         .expect("accept channel success");
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_create_private_channel() {
     init_tracing();
@@ -173,7 +173,7 @@ async fn test_create_private_channel() {
     )
     .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_create_channel_with_remote_tlc_info() {
     async fn test(public: bool) {
@@ -187,7 +187,10 @@ async fn test_create_channel_with_remote_tlc_info() {
         )
         .await;
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(not(target_arch = "wasm32"))]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
+        #[cfg(target_arch = "wasm32")]
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
         let node_a_channel_state = node_a.store.get_channel_actor_state(&channel_id).unwrap();
         let node_b_channel_state = node_b.store.get_channel_actor_state(&channel_id).unwrap();
@@ -205,7 +208,7 @@ async fn test_create_channel_with_remote_tlc_info() {
     test(true).await;
     test(false).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_create_public_channel() {
     init_tracing();
@@ -234,7 +237,7 @@ async fn do_test_owned_channel_saved_to_the_owner_graph(public: bool) {
         .await;
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node1_id = node1.peer_id.clone();
     node1.stop().await;
@@ -272,11 +275,12 @@ async fn do_test_owned_channel_saved_to_the_owner_graph(public: bool) {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_owned_public_channel_saved_to_the_owner_graph() {
     do_test_owned_channel_saved_to_the_owner_graph(true).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_owned_private_channel_saved_to_the_owner_graph() {
     do_test_owned_channel_saved_to_the_owner_graph(false).await;
@@ -329,7 +333,7 @@ async fn do_test_owned_channel_removed_from_graph_on_disconnected(public: bool) 
         })
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     let node1_channels = node1.get_network_graph_channels().await;
     assert_eq!(node1_channels, vec![]);
     let node2_channels = node2.get_network_graph_channels().await;
@@ -393,7 +397,7 @@ async fn do_test_owned_channel_saved_to_graph_on_reconnected(public: bool) {
         })
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     let node1_channels = node1.get_network_graph_channels().await;
     assert_eq!(node1_channels, vec![]);
     let node2_channels = node2.get_network_graph_channels().await;
@@ -426,18 +430,18 @@ async fn do_test_owned_channel_saved_to_graph_on_reconnected(public: bool) {
         })
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     let node1_channels = node1.get_network_graph_channels().await;
     assert_ne!(node1_channels, vec![]);
     let node2_channels = node2.get_network_graph_channels().await;
     assert_ne!(node2_channels, vec![]);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_owned_channel_saved_to_graph_on_reconnected_public_channel() {
     do_test_owned_channel_saved_to_graph_on_reconnected(true).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_owned_channel_saved_to_graph_on_reconnected_private_channel() {
     do_test_owned_channel_saved_to_graph_on_reconnected(false).await;
@@ -456,7 +460,7 @@ async fn do_test_update_graph_balance_after_payment(public: bool) {
     let node_b_pubkey = node_b.pubkey;
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let test_channel_info = |channels: Vec<ChannelInfo>,
                              node_a_pubkey: Pubkey,
@@ -542,7 +546,7 @@ async fn do_test_update_graph_balance_after_payment(public: bool) {
     let payment_hash2 = res2.payment_hash;
 
     // sleep for 2 seconds to make sure the payment is processed
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(payment_hash1, rpc_reply))
@@ -629,7 +633,7 @@ async fn test_public_channel_saved_to_the_other_nodes_graph() {
     ));
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     node3.stop().await;
     let channels = node3.get_network_graph_channels().await;
@@ -669,7 +673,7 @@ async fn test_public_channel_with_unconfirmed_funding_tx() {
     // thus refusing to save the channel to the graph.
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     node3.stop().await;
     let channels = node3.get_network_graph_channels().await;
@@ -677,6 +681,7 @@ async fn test_public_channel_with_unconfirmed_funding_tx() {
     assert_eq!(channels.len(), 0);
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_normal_keysend_workflow() {
     init_tracing();
@@ -692,7 +697,7 @@ async fn test_network_send_payment_normal_keysend_workflow() {
     let node_b_local_balance = node_b.get_local_balance_from_channel(channel_id);
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -713,7 +718,7 @@ async fn test_network_send_payment_normal_keysend_workflow() {
     assert_eq!(res.status, PaymentSessionStatus::Created);
     let payment_hash = res.payment_hash;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(payment_hash, rpc_reply))
@@ -728,7 +733,7 @@ async fn test_network_send_payment_normal_keysend_workflow() {
     assert_eq!(node_a_local_balance - new_balance_node_a, 10000);
     assert_eq!(new_balance_node_b - node_b_local_balance, 10000);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     assert_eq!(res.status, PaymentSessionStatus::Success);
     assert_eq!(res.failed_error, None);
@@ -757,7 +762,7 @@ async fn test_network_send_payment_normal_keysend_workflow() {
 
     assert!(node_a.get_payment_preimage(&payment_hash).is_none());
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_send_each_other() {
     init_tracing();
@@ -769,7 +774,7 @@ async fn test_network_send_payment_send_each_other() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_a_old_balance = node_a.get_local_balance_from_channel(new_channel_id);
     let node_b_old_balance = node_b.get_local_balance_from_channel(new_channel_id);
 
@@ -813,7 +818,7 @@ async fn test_network_send_payment_send_each_other() {
     let payment_hash2 = res2.payment_hash;
 
     // sleep for 2 seconds to make sure the payment is processed
-    tokio::time::sleep(tokio::time::Duration::from_millis(4000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(4000)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(payment_hash1, rpc_reply))
@@ -843,7 +848,7 @@ async fn test_network_send_payment_send_each_other() {
     assert_eq!(node_a_new_balance, node_a_old_balance - 1);
     assert_eq!(node_b_new_balance, node_b_old_balance + 1);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_more_send_each_other() {
     init_tracing();
@@ -863,7 +868,7 @@ async fn test_network_send_payment_more_send_each_other() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_a_old_balance = node_a.get_local_balance_from_channel(new_channel_id);
     let node_b_old_balance = node_b.get_local_balance_from_channel(new_channel_id);
 
@@ -956,7 +961,7 @@ async fn test_network_send_payment_more_send_each_other() {
     assert_eq!(node_a_new_balance, node_a_old_balance);
     assert_eq!(node_b_new_balance, node_b_old_balance);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_send_with_ack() {
     init_tracing();
@@ -968,7 +973,7 @@ async fn test_network_send_payment_send_with_ack() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1012,7 +1017,7 @@ async fn test_network_send_payment_send_with_ack() {
     node_a.wait_until_success(payment_hash1).await;
     node_a.wait_until_success(payment_hash2).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_previous_tlc_error() {
     init_tracing();
@@ -1024,7 +1029,7 @@ async fn test_network_send_previous_tlc_error() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let secp = Secp256k1::new();
     let keys: Vec<Privkey> = std::iter::repeat_with(gen_rand_fiber_private_key)
@@ -1102,7 +1107,7 @@ async fn test_network_send_previous_tlc_error() {
         })
         .await;
     // sleep 2 seconds to make sure node_b processed handle_add_tlc_peer_message
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -1125,7 +1130,7 @@ async fn test_network_send_previous_tlc_error() {
 
     node_a.wait_until_success(payment_hash).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
     init_tracing();
@@ -1137,7 +1142,7 @@ async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let secp = Secp256k1::new();
     let keys: Vec<Privkey> = std::iter::repeat_with(gen_rand_fiber_private_key)
@@ -1215,7 +1220,7 @@ async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
         })
         .await;
     // sleep 2 seconds to make sure node_b processed handle_add_tlc_peer_message
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -1238,7 +1243,7 @@ async fn test_network_send_previous_tlc_error_with_limit_amount_error() {
 
     node_a.wait_until_success(payment_hash).await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_keysend_with_payment_hash() {
     init_tracing();
@@ -1250,7 +1255,7 @@ async fn test_network_send_payment_keysend_with_payment_hash() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let payment_hash = gen_rand_sha256_hash();
@@ -1274,7 +1279,7 @@ async fn test_network_send_payment_keysend_with_payment_hash() {
         .unwrap()
         .contains("keysend payment should not have payment_hash"));
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_final_incorrect_hash() {
     init_tracing();
@@ -1286,7 +1291,7 @@ async fn test_network_send_payment_final_incorrect_hash() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_a_local_balance = node_a.get_local_balance_from_channel(channel_id);
     let node_b_local_balance = node_b.get_local_balance_from_channel(channel_id);
@@ -1316,7 +1321,7 @@ async fn test_network_send_payment_final_incorrect_hash() {
     assert!(res.is_ok());
     assert_eq!(res.unwrap().status, PaymentSessionStatus::Inflight);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(payment_hash, rpc_reply))
@@ -1335,7 +1340,7 @@ async fn test_network_send_payment_final_incorrect_hash() {
     assert_eq!(node_a_local_balance - new_balance_node_a, 0);
     assert_eq!(new_balance_node_b - node_b_local_balance, 0);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_target_not_found() {
     init_tracing();
@@ -1347,7 +1352,7 @@ async fn test_network_send_payment_target_not_found() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = gen_rand_fiber_public_key();
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1365,7 +1370,7 @@ async fn test_network_send_payment_target_not_found() {
     assert!(res.is_err());
     assert!(res.err().unwrap().contains("no path found"));
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_amount_is_too_large() {
     init_tracing();
@@ -1377,7 +1382,7 @@ async fn test_network_send_payment_amount_is_too_large() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1400,6 +1405,7 @@ async fn test_network_send_payment_amount_is_too_large() {
 }
 
 // FIXME: this is the case send_payment with direct channels, we should handle this case
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_with_dry_run() {
     init_tracing();
@@ -1411,7 +1417,7 @@ async fn test_network_send_payment_with_dry_run() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1466,7 +1472,7 @@ async fn test_send_payment_with_3_nodes() {
     let node_c_local = node_c.get_local_balance_from_channel(channel_2);
 
     // sleep for 2 seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let sent_amount = 1000000 + 5;
     let node_c_pubkey = node_c.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1556,7 +1562,7 @@ async fn test_send_payment_with_rev_3_nodes() {
     assert_eq!(res.status, PaymentSessionStatus::Created);
     assert!(res.fee > 0);
     // sleep for 2 seconds to make sure the payment is sent
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(res.payment_hash, rpc_reply))
     };
@@ -1595,7 +1601,7 @@ async fn test_send_payment_with_max_nodes() {
     let receiver_local = nodes[last].get_local_balance_from_channel(channels[last - 1]);
 
     // sleep for seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(800)).await;
     let sent_amount = 1000000 + 5;
 
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1617,7 +1623,7 @@ async fn test_send_payment_with_max_nodes() {
     assert!(res.fee > 0);
 
     // sleep for 8 seconds to make sure the payment is sent
-    tokio::time::sleep(tokio::time::Duration::from_millis(8000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(8000)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(res.payment_hash, rpc_reply))
@@ -1652,7 +1658,7 @@ async fn test_send_payment_with_3_nodes_overflow() {
     .await;
 
     // sleep for 2 seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let sent_amount = 0xfffffffffffffffffffffffffffffff;
     let node_c_pubkey = node_c.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -1690,7 +1696,7 @@ async fn test_send_payment_fail_with_3_nodes_invalid_hash() {
     let node_c_local = node_c.get_local_balance_from_channel(channel_2);
 
     // sleep for 2 seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_c_pubkey = node_c.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -1709,7 +1715,7 @@ async fn test_send_payment_fail_with_3_nodes_invalid_hash() {
     assert_eq!(res.status, PaymentSessionStatus::Created);
     assert!(res.fee > 0);
     // sleep for 2 seconds to make sure the payment is sent
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::GetPayment(res.payment_hash, rpc_reply))
     };
@@ -1750,7 +1756,7 @@ async fn test_send_payment_fail_with_3_nodes_final_tlc_expiry_delta() {
     .await;
 
     // sleep for 2 seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     let node_c_pubkey = node_c.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -1819,7 +1825,7 @@ async fn test_send_payment_fail_with_3_nodes_dry_run_fee() {
     .await;
 
     // sleep for 2 seconds to make sure the channel is established
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
     let node_c_pubkey = node_c.pubkey;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -1910,7 +1916,7 @@ async fn test_send_payment_fail_with_3_nodes_dry_run_fee() {
     let res = call!(node_a.network_actor, message).expect("node_a alive");
     assert!(res.is_err());
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_dry_run_can_still_query() {
     init_tracing();
@@ -1922,7 +1928,7 @@ async fn test_network_send_payment_dry_run_can_still_query() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let payment_hash = gen_rand_sha256_hash();
     let node_b_pubkey = node_b.pubkey;
@@ -1952,7 +1958,7 @@ async fn test_network_send_payment_dry_run_can_still_query() {
     assert!(res.is_ok());
 
     // sleep for a while to make sure the payment session is created
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
             SendPaymentCommand {
@@ -1978,7 +1984,7 @@ async fn test_network_send_payment_dry_run_can_still_query() {
     let res = call!(node_a.network_actor, message).expect("node_a alive");
     assert!(res.is_ok());
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
     init_tracing();
@@ -1990,7 +1996,7 @@ async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
         create_nodes_with_established_channel(node_a_funding_amount, node_b_funding_amount, true)
             .await;
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let payment_hash = gen_rand_sha256_hash();
     let node_b_pubkey = node_b.pubkey;
@@ -2021,7 +2027,7 @@ async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
     assert!(res.is_ok());
 
     // make sure we can send the same payment after dry run query
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
             SendPaymentCommand {
@@ -2037,6 +2043,7 @@ async fn test_network_send_payment_dry_run_will_not_create_payment_session() {
     assert!(res.is_ok());
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_stash_broadcast_messages() {
     init_tracing();
@@ -2052,7 +2059,7 @@ async fn test_stash_broadcast_messages() {
     .await;
 
     // Wait for the channel announcement to be broadcasted
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 }
 
 async fn do_test_channel_commitment_tx_after_add_tlc(algorithm: HashAlgorithm) {
@@ -2191,7 +2198,7 @@ async fn do_test_channel_commitment_tx_after_add_tlc(algorithm: HashAlgorithm) {
         })
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -2293,7 +2300,7 @@ async fn do_test_remove_tlc_with_wrong_hash_algorithm(
     dbg!(&add_tlc_result);
 
     dbg!("Sleeping for some time to wait for the AddTlc processed by both party");
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -2315,7 +2322,7 @@ async fn do_test_remove_tlc_with_wrong_hash_algorithm(
     .expect("successfully removed tlc");
 
     dbg!("Sleeping for some time to wait for the RemoveTlc processed by both party");
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let preimage = [2; 32];
     // create a new payment hash
@@ -2345,7 +2352,7 @@ async fn do_test_remove_tlc_with_wrong_hash_algorithm(
     dbg!(&add_tlc_result);
 
     dbg!("Sleeping for some time to wait for the AddTlc processed by both party");
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let remove_tlc_result = call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -2424,7 +2431,7 @@ async fn do_test_channel_remote_commitment_error() {
             dbg!(&add_tlc_result);
             all_sent.push((preimage, add_tlc_result.tlc_id));
         }
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(10)).await;
         if all_sent.len() >= tlc_number_in_flight_limit {
             while all_sent.len() > tlc_number_in_flight_limit - 2 {
                 if let Some((preimage, tlc_id)) = all_sent.first().cloned() {
@@ -2462,7 +2469,7 @@ async fn do_test_channel_remote_commitment_error() {
         }
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_network_add_two_tlcs_remove_one() {
     let node_a_funding_amount = 100000000000;
@@ -2476,7 +2483,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     let old_a_balance = node_a.get_local_balance_from_channel(channel_id);
     let old_b_balance = node_b.get_local_balance_from_channel(channel_id);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let preimage_a = [1; 32];
     let algorithm = HashAlgorithm::Sha256;
@@ -2531,7 +2538,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     assert!(add_tlc_result.is_err());
 
     // now wait for a while, then add a tlc again, it will success
-    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(200)).await;
     let add_tlc_result_b = call!(node_a.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
             ChannelCommandWithId {
@@ -2556,7 +2563,7 @@ async fn test_network_add_two_tlcs_remove_one() {
 
     eprintln!("add_tlc_result: {:?}", add_tlc_result_b);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     // remove tlc from node_b
     call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -2577,7 +2584,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     .expect("node_b alive")
     .expect("successfully removed tlc");
     eprintln!("remove tlc result: {:?}", ());
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
 
     let new_a_balance = node_a.get_local_balance_from_channel(channel_id);
     let new_b_balance = node_b.get_local_balance_from_channel(channel_id);
@@ -2588,7 +2595,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     assert_eq!(new_a_balance, old_a_balance - 1000);
     assert_eq!(new_b_balance, old_b_balance + 1000);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     // remove the later tlc from node_b
     call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -2609,7 +2616,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     .expect("node_b alive")
     .expect("successfully removed tlc");
     eprintln!("remove tlc result: {:?}", ());
-    tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(400)).await;
 
     let new_a_balance = node_a.get_local_balance_from_channel(channel_id);
     let new_b_balance = node_b.get_local_balance_from_channel(channel_id);
@@ -2620,7 +2627,7 @@ async fn test_network_add_two_tlcs_remove_one() {
     assert_eq!(new_a_balance, old_a_balance - 3000);
     assert_eq!(new_b_balance, old_b_balance + 3000);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_remove_tlc_with_expiry_error() {
     let node_a_funding_amount = 100000000000;
@@ -2645,7 +2652,7 @@ async fn test_remove_tlc_with_expiry_error() {
         previous_tlc: None,
     };
 
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    ractor::concurrency::sleep(std::time::Duration::from_millis(400)).await;
     let add_tlc_result = call!(node_a.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
             ChannelCommandWithId {
@@ -2680,7 +2687,7 @@ async fn test_remove_tlc_with_expiry_error() {
 
     assert!(add_tlc_result.is_err());
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn do_test_add_tlc_duplicated() {
     let node_a_funding_amount = 100000000000;
@@ -2695,7 +2702,7 @@ async fn do_test_add_tlc_duplicated() {
     let tlc_amount = 1000000000;
 
     for i in 1..=2 {
-        std::thread::sleep(std::time::Duration::from_millis(400));
+        ractor::concurrency::sleep(std::time::Duration::from_millis(400)).await;
         // add tlc command with expiry soon
         let add_tlc_command = AddTlcCommand {
             amount: tlc_amount,
@@ -2723,7 +2730,7 @@ async fn do_test_add_tlc_duplicated() {
         }
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn do_test_add_tlc_waiting_ack() {
     let node_a_funding_amount = 100000000000;
@@ -2764,7 +2771,7 @@ async fn do_test_add_tlc_waiting_ack() {
         }
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
     // send from b to a
     for i in 1..=2 {
         let add_tlc_command = AddTlcCommand {
@@ -2840,7 +2847,7 @@ async fn do_test_add_tlc_with_number_limit() {
             ))
         })
         .expect("source node alive");
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         if i == node_a_max_tlc_number + 1 {
             assert!(add_tlc_result.is_err());
             let code = add_tlc_result.unwrap_err();
@@ -2871,7 +2878,7 @@ async fn do_test_add_tlc_with_number_limit() {
             ))
         })
         .expect("source node alive");
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         dbg!(&add_tlc_result);
         assert!(add_tlc_result.is_ok());
     }
@@ -2919,7 +2926,7 @@ async fn do_test_add_tlc_number_limit_reverse() {
             ))
         })
         .expect("source node alive");
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         if i == node_b_max_tlc_number + 1 {
             assert!(add_tlc_result.is_err());
             let code = add_tlc_result.unwrap_err();
@@ -2950,7 +2957,7 @@ async fn do_test_add_tlc_number_limit_reverse() {
             ))
         })
         .expect("source node alive");
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         dbg!(&add_tlc_result);
         assert!(add_tlc_result.is_ok());
     }
@@ -3000,7 +3007,7 @@ async fn do_test_add_tlc_value_limit() {
         })
         .expect("node_b alive");
         // sleep for a while to make sure the AddTlc processed by both party
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         if i == max_tlc_number + 1 {
             assert!(add_tlc_result.is_err());
             let code = add_tlc_result.unwrap_err();
@@ -3032,7 +3039,7 @@ async fn do_test_add_tlc_value_limit() {
         })
         .expect("node_b alive");
         // sleep for a while to make sure the AddTlc processed by both party
-        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(300)).await;
         assert!(add_tlc_result.is_ok());
     }
 }
@@ -3056,7 +3063,7 @@ async fn do_test_add_tlc_min_tlc_value_limit() {
         },
     )
     .await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // A -> B will be no limit
     let tlc_amount = 200;
@@ -3078,7 +3085,7 @@ async fn do_test_add_tlc_min_tlc_value_limit() {
         ))
     })
     .expect("node_b alive");
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     assert!(add_tlc_result.is_ok());
 
     // B -> A can still able to send amount less than 100
@@ -3104,7 +3111,7 @@ async fn do_test_add_tlc_min_tlc_value_limit() {
     .expect("node_b alive");
     assert!(add_tlc_result.is_ok());
     // sleep for a while to make sure the AddTlc processed by both party
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // B -> A can send at least 100
     let tlc_amount = 100;
@@ -3202,7 +3209,7 @@ async fn test_forward_payment_channel_disabled() {
     let [node_a, node_b, node_c] = nodes.try_into().expect("3 nodes");
     let [_channel_a_b, channel_b_c] = channels.try_into().expect("2 channels");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_a
         .send_payment_keysend(&node_c, 10_000_000, false)
@@ -3255,7 +3262,7 @@ async fn test_forward_payment_channel_disabled() {
     })
     .unwrap();
     assert!(update_result.is_ok());
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let res = node_a
         .send_payment_keysend(&node_c, 10_000_000, false)
@@ -3322,7 +3329,7 @@ async fn test_forward_payment_tlc_minimum_value() {
     .unwrap();
     assert!(update_result.is_ok());
     // sleep for a while to make sure the Update processed by both party
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // A -> C now will be with no limit
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -3341,7 +3348,7 @@ async fn test_forward_payment_tlc_minimum_value() {
         .unwrap();
     // this is the payment_hash generated by keysend
     assert_eq!(res.status, PaymentSessionStatus::Created);
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // update B's ChannelUpdate in channel_b_c with new tlc_minimum_value
     let update_result = call!(node_b.network_actor, |rpc_reply| {
@@ -3363,7 +3370,7 @@ async fn test_forward_payment_tlc_minimum_value() {
     .unwrap();
     assert!(update_result.is_ok());
     // sleep for a while to make sure the Update processed by both party
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // AddTlc from A to B is OK because we didn't update the channel
     let tlc_amount = 99;
@@ -3386,7 +3393,7 @@ async fn test_forward_payment_tlc_minimum_value() {
     })
     .expect("node_b alive");
     assert!(add_tlc_result.is_ok());
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // AddTlc from B to C is not OK because the forwarding value is too small
     let add_tlc_result = call!(node_b.network_actor, |rpc_reply| {
@@ -3414,7 +3421,7 @@ async fn test_forward_payment_tlc_minimum_value() {
     };
     let res = call!(node_a.network_actor, message).expect("node_b alive");
     assert!(res.is_ok());
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // sending payment from B to C is not OK because the forwarding value is too small
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -3469,7 +3476,7 @@ async fn test_send_payment_with_outdated_fee_rate() {
     let node_c_pubkey = node_c.pubkey;
     let hash_set: HashSet<_> = [node_b_pubkey, node_c_pubkey].into_iter().collect();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     node_a
         .with_network_graph_mut(|graph| {
@@ -3566,7 +3573,7 @@ async fn do_test_channel_with_simple_update_operation(algorithm: HashAlgorithm) 
     dbg!(&add_tlc_result);
 
     dbg!("Sleeping for some time to wait for the AddTlc processed by both party");
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     call!(node_b.network_actor, |rpc_reply| {
         NetworkActorMessage::Command(NetworkActorCommand::ControlFiberChannel(
@@ -3587,7 +3594,7 @@ async fn do_test_channel_with_simple_update_operation(algorithm: HashAlgorithm) 
     .expect("node_b alive")
     .expect("successfully removed tlc");
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let fee_rate = FeeRate::from_u64(DEFAULT_COMMITMENT_FEE_RATE);
     call!(node_b.network_actor, |rpc_reply| {
@@ -3863,6 +3870,7 @@ async fn test_revoke_old_commitment_transaction() {
     ));
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_channel_with_simple_update_operation() {
     for algorithm in HashAlgorithm::supported_algorithms() {
@@ -4134,7 +4142,7 @@ async fn test_reestablish_channel() {
         })
         .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_force_close_channel_when_remote_is_offline() {
     let (mut node_a, mut node_b, channel_id, _) =
@@ -4165,7 +4173,7 @@ async fn test_force_close_channel_when_remote_is_offline() {
         .expect("node_a alive")
         .expect("successfully shutdown channel");
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_normal_shutdown_with_remove_tlc() {
     init_tracing();
@@ -4206,7 +4214,7 @@ async fn test_normal_shutdown_with_remove_tlc() {
     .expect("node_a alive")
     .expect("successfully added tlc");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // node_a send Shutdown
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -4226,7 +4234,7 @@ async fn test_normal_shutdown_with_remove_tlc() {
     };
     let res = call!(node_a.network_actor, message);
     debug!("shutdown res: {:?}", res);
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // node_b send remove tlc
     call!(node_b.network_actor, |rpc_reply| {
@@ -4248,7 +4256,7 @@ async fn test_normal_shutdown_with_remove_tlc() {
     .expect("node_b alive")
     .expect("successfully removed tlc");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let node_a_state = node_a.get_channel_actor_state(channel_id);
     let node_b_state = node_b.get_channel_actor_state(channel_id);
@@ -4266,7 +4274,7 @@ async fn test_normal_shutdown_with_remove_tlc() {
     assert_eq!(node_a_balance, old_node_a_balance - tlc_amount);
     assert_eq!(node_b_balance, old_node_b_balance + tlc_amount);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_commitment_tx_capacity() {
     let (amount_a, amount_b) = (16200000000, 6200000000);
@@ -4284,7 +4292,7 @@ async fn test_commitment_tx_capacity() {
         output_capacity as u128
     );
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_connect_to_peers_with_mutual_channel_on_restart_1() {
     init_tracing();
@@ -4301,7 +4309,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_1() {
         .await;
 
     // sleep for a while to make sure this test works both for release mode
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     node_a.restart().await;
 
@@ -4316,7 +4324,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_1() {
         .expect_debug_event("Reestablished channel in ChannelReady")
         .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_connect_to_peers_with_mutual_channel_on_restart_2() {
     init_tracing();
@@ -4333,7 +4341,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_2() {
         .await;
 
     // sleep for a while to make sure this test works both for release mode
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     node_a.stop().await;
 
@@ -4349,7 +4357,7 @@ async fn test_connect_to_peers_with_mutual_channel_on_restart_2() {
     )
     .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_send_payment_with_node_restart_then_resend_add_tlc() {
     init_tracing();
@@ -4365,7 +4373,7 @@ async fn test_send_payment_with_node_restart_then_resend_add_tlc() {
         )
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let node_b_pubkey = node_b.pubkey;
     let tlc_amount = 99;
@@ -4409,11 +4417,11 @@ async fn test_send_payment_with_node_restart_then_resend_add_tlc() {
 
     node_a.expect_debug_event("resend add tlc").await;
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
     let payment_status = node_a.get_payment_status(payment_hash).await;
     assert_eq!(payment_status, PaymentSessionStatus::Success);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_node_reestablish_resend_remove_tlc() {
     init_tracing();
@@ -4429,7 +4437,7 @@ async fn test_node_reestablish_resend_remove_tlc() {
         )
         .await;
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     let node_a_balance = node_a.get_local_balance_from_channel(new_channel_id);
     let node_b_balance = node_b.get_local_balance_from_channel(new_channel_id);
@@ -4463,7 +4471,7 @@ async fn test_node_reestablish_resend_remove_tlc() {
     dbg!(&add_tlc_result);
 
     dbg!("Sleeping for some time to wait for the AddTlc processed by both party");
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     node_a.stop().await;
 
@@ -4488,7 +4496,7 @@ async fn test_node_reestablish_resend_remove_tlc() {
     dbg!(&remove_tlc_result);
     assert!(remove_tlc_result.is_ok());
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // assert balance does not changed since remove tlc is not processed by node_a
     let new_node_a_balance = node_a.get_local_balance_from_channel(new_channel_id);
@@ -4498,7 +4506,7 @@ async fn test_node_reestablish_resend_remove_tlc() {
 
     node_a.start().await;
     node_b.expect_debug_event("resend remove tlc").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // assert balance changed since remove tlc is processed by node_a after node_b resending remove tlc
     let new_node_a_balance = node_a.get_local_balance_from_channel(new_channel_id);
@@ -4621,7 +4629,7 @@ async fn test_accept_channel_with_large_size_shutdown_script_should_fail() {
         })
         .await;
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_shutdown_channel_with_large_size_shutdown_script_should_fail() {
     let node_a_funding_amount = 100000000000;
@@ -4653,7 +4661,7 @@ async fn test_shutdown_channel_with_large_size_shutdown_script_should_fail() {
         .unwrap()
         .contains("Local balance is not enough to pay the fee"));
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_shutdown_channel_with_different_size_shutdown_script() {
     let node_a_funding_amount = 100000000000;
@@ -4733,7 +4741,7 @@ async fn test_shutdown_channel_with_different_size_shutdown_script() {
         TxStatus::Committed(..)
     ));
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_shutdown_channel_network_graph_will_not_sync_private_channel() {
     let node_a_funding_amount = 100000000000;
@@ -4744,7 +4752,7 @@ async fn test_shutdown_channel_network_graph_will_not_sync_private_channel() {
             .await;
 
     // sleep for 1 second
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let network_nodes = node_a.get_network_nodes().await;
     assert_eq!(network_nodes.len(), 2);
@@ -4758,7 +4766,7 @@ async fn test_shutdown_channel_network_graph_will_not_sync_private_channel() {
     let network_channels = node_b.get_network_channels().await;
     assert_eq!(network_channels.len(), 0);
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_shutdown_channel_network_graph_with_sync_up() {
     let node_a_funding_amount = 100000000000;
@@ -4769,7 +4777,7 @@ async fn test_shutdown_channel_network_graph_with_sync_up() {
             .await;
 
     // sleep for 1 second
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let network_nodes = node_a.get_network_nodes().await;
     assert_eq!(network_nodes.len(), 2);
@@ -4803,7 +4811,7 @@ async fn test_shutdown_channel_network_graph_with_sync_up() {
         .expect("node_b alive")
         .expect("successfully shutdown channel");
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 
     let network_nodes = node_a.get_network_nodes().await;
     assert_eq!(network_nodes.len(), 2);
@@ -4833,7 +4841,7 @@ async fn test_send_payment_with_channel_balance_error() {
     let target_pubkey = node_3.pubkey;
 
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -4853,7 +4861,7 @@ async fn test_send_payment_with_channel_balance_error() {
     source_node.wait_until_success(payment_hash).await;
 
     node_2.update_channel_local_balance(channels[2], 100).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -4895,7 +4903,7 @@ async fn test_send_payment_with_disable_channel() {
 
     // begin to set channel disable, but do not notify the network
     node_2.disable_channel_stealthy(channels[1]).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     // expect send payment failed from node_3 to node_0
     let res = node_3.send_payment_keysend(&node_0, 3000, false).await;
@@ -5339,7 +5347,7 @@ async fn test_send_payment_will_succeed_with_direct_channel_info_first_hop() {
     source_node
         .update_channel_local_balance(channels[0], 100)
         .await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let message = |rpc_reply| -> NetworkActorMessage {
         NetworkActorMessage::Command(NetworkActorCommand::SendPayment(
@@ -5390,7 +5398,7 @@ async fn test_send_payment_will_succeed_with_retry_in_middle_hops() {
 
     // manually update the channel's to_local_amount
     node_2.update_channel_local_balance(channels[2], 100).await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let amount = 999;
     let message = |rpc_reply| -> NetworkActorMessage {
@@ -5450,7 +5458,7 @@ async fn test_send_payment_will_fail_with_last_hop_info_in_add_tlc_peer() {
     node_3
         .update_channel_remote_balance(channels[2], 100000000)
         .await;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     let res = source_node
         .send_payment(SendPaymentCommand {
@@ -5475,7 +5483,7 @@ async fn test_send_payment_will_fail_with_last_hop_info_in_add_tlc_peer() {
         .await;
 
     let payment_hash = res.unwrap().payment_hash;
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
 
     source_node
         .assert_payment_status(payment_hash, PaymentSessionStatus::Inflight, Some(1))
@@ -5632,7 +5640,7 @@ async fn test_send_payment_will_fail_with_no_invoice_preimage() {
     assert!(res.is_ok());
 
     let payment_hash = res.unwrap().payment_hash;
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     source_node
         .assert_payment_status(payment_hash, PaymentSessionStatus::Failed, Some(1))
@@ -5679,7 +5687,7 @@ async fn test_send_payment_will_fail_with_cancelled_invoice() {
     node_3.insert_invoice(ckb_invoice.clone(), Some(preimage));
     node_3.cancel_invoice(ckb_invoice.payment_hash());
     // sleep for a while
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
 
     let res = source_node
         .send_payment(SendPaymentCommand {
@@ -5692,7 +5700,7 @@ async fn test_send_payment_will_fail_with_cancelled_invoice() {
 
     assert!(res.is_ok());
     let payment_hash = res.unwrap().payment_hash;
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     source_node
         .assert_payment_status(payment_hash, PaymentSessionStatus::Failed, Some(1))
@@ -5755,7 +5763,7 @@ async fn test_send_payment_will_succeed_with_large_tlc_expiry_limit() {
     // expect send payment to succeed
     assert!(res.is_ok());
     let payment_hash = res.unwrap().payment_hash;
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_secs(2)).await;
 
     source_node
         .assert_payment_status(payment_hash, PaymentSessionStatus::Success, Some(1))
@@ -5792,7 +5800,7 @@ async fn test_abandon_failed_channel_without_accept() {
 
     eprintln!("open_channel_result: {:?}", open_channel_result);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let temp_channel_id = open_channel_result.channel_id;
     let node_a_channel_actor_state = node_a.get_channel_actor_state_unchecked(temp_channel_id);
@@ -5800,7 +5808,7 @@ async fn test_abandon_failed_channel_without_accept() {
 
     let res = node_a.send_abandon_channel(temp_channel_id).await;
     assert!(res.is_ok());
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
     node_a.expect_debug_event("ChannelActorStopped").await;
 }
 
@@ -5834,7 +5842,7 @@ async fn test_abandon_channel_with_peer_accept() {
 
     eprintln!("open_channel_result: {:?}", open_channel_result);
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let temp_channel_id = open_channel_result.channel_id;
     let node_a_channel_actor_state = node_a.get_channel_actor_state_unchecked(temp_channel_id);
@@ -5864,7 +5872,7 @@ async fn test_abandon_channel_with_peer_accept() {
         .expect("accept channel success");
 
     let new_channel_id = accept_channel_result.new_channel_id;
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // temp_channel_id will not work now, since it has been replaced by the real channel_id
     let res = node_a.send_abandon_channel(temp_channel_id).await;
@@ -5879,7 +5887,7 @@ async fn test_abandon_channel_with_peer_accept() {
     assert!(res.is_ok());
 
     // make sure the channel actor is stopped
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
     node_a.expect_debug_event("ChannelActorStopped").await;
 
     // make sure the channel is removed from DB
@@ -5899,6 +5907,6 @@ async fn test_abandon_channel_with_peer_accept() {
     assert!(res.is_ok());
 
     // make sure the channel actor is stopped
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
     node_b.expect_debug_event("ChannelActorStopped").await;
 }

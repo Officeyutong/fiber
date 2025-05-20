@@ -1011,6 +1011,7 @@ fn test_history_channel_probability_range() {
 
 #[cfg_attr(target_arch = "wasm32", crate::test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg(not(target_arch = "wasm32"))]
 
 fn test_history_eval_probability_range() {
     let mock = MockHistory::new();

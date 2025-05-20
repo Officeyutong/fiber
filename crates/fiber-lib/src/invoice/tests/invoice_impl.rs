@@ -1,9 +1,3 @@
-use bech32::ToBase32;
-use ckb_hash::blake2b_256;
-use ckb_types::packed::Script;
-use secp256k1::{Message, Secp256k1};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
 use crate::{
     fiber::{gen::invoice::RawCkbInvoice, types::Hash256},
     gen_deterministic_secp256k1_keypair_tuple,
@@ -17,6 +11,11 @@ use crate::{
     gen_rand_fiber_public_key, gen_rand_secp256k1_keypair_tuple, gen_rand_secp256k1_private_key,
     gen_rand_sha256_hash,
 };
+use bech32::ToBase32;
+use ckb_hash::blake2b_256;
+use ckb_types::packed::Script;
+use secp256k1::{Message, Secp256k1};
+use std::time::Duration;
 
 fn mock_invoice() -> CkbInvoice {
     let (private_key, public_key) = gen_rand_secp256k1_keypair_tuple();
@@ -26,8 +25,8 @@ fn mock_invoice() -> CkbInvoice {
         signature: None,
         data: InvoiceData {
             payment_hash: gen_rand_sha256_hash(),
-            timestamp: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
+            timestamp: crate::platform::SystemTime::now()
+                .duration_since(crate::platform::UNIX_EPOCH)
                 .unwrap()
                 .as_millis(),
             attrs: vec![
@@ -461,7 +460,7 @@ fn test_invoice_serialize() {
 
 #[cfg_attr(target_arch = "wasm32", crate::test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
-
+#[cfg(not(target_arch = "wasm32"))]
 fn test_invoice_timestamp() {
     let payment_hash = gen_rand_sha256_hash();
     let private_key = gen_rand_secp256k1_private_key();
@@ -533,7 +532,7 @@ fn test_invoice_udt_script() {
 
 #[cfg_attr(target_arch = "wasm32", crate::test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
-
+#[cfg(not(target_arch = "wasm32"))]
 fn test_invoice_check_expired() {
     let private_key = gen_rand_secp256k1_private_key();
     let invoice = InvoiceBuilder::new(Currency::Fibb)

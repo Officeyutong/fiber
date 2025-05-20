@@ -603,7 +603,7 @@ pub(crate) async fn create_n_nodes_network_with_params(
     }
     // sleep for a while to make sure network graph is updated
     for _ in 0..50 {
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         if nodes[0].get_network_graph_channels().await.len() >= amounts.len() {
             break;
         }
@@ -955,7 +955,7 @@ impl NetworkNode {
                 // report error
                 assert_eq!(status, PaymentSessionStatus::Success);
             }
-            tokio::time::sleep(Duration::from_millis(500)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         }
     }
 
@@ -971,7 +971,7 @@ impl NetworkNode {
                 // report error
                 assert_eq!(status, PaymentSessionStatus::Failed);
             }
-            tokio::time::sleep(Duration::from_millis(500)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         }
     }
 
@@ -982,7 +982,7 @@ impl NetworkNode {
             if status != PaymentSessionStatus::Created {
                 break;
             }
-            tokio::time::sleep(Duration::from_millis(500)).await;
+            ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         }
     }
 
@@ -1011,7 +1011,7 @@ impl NetworkNode {
                 }),
             ))
             .expect("network actor is live");
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(200)).await;
     }
 
     pub async fn update_channel_local_balance(
@@ -1327,7 +1327,7 @@ impl NetworkNode {
         // If we start the node immediately, other nodes may deem our new connection
         // as a duplicate connection and report RepeatedConnection error.
         // And we will receive `ProtocolSelectError` error from tentacle.
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
         tracing::debug!("Node stopped, restarting");
         self.start().await;
     }

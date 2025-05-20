@@ -49,6 +49,7 @@ aes-gcm = "0.10"
 scrypt = "0.11"
 clap-serde-derive = "0.2.1"
 clap = { version = "4.5.2", features = ["derive", "env", "string"] }
+cfg-if = "1.0.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 console = "0.15.8"
@@ -90,6 +91,8 @@ ckb-hash = { version = "0.200.0", features = [
 tracing = { version = "0.1", features = ["log"] }
 jsonrpsee = { version = "0.25", features = ["macros", "server-core"] }
 getrandom = { version = "0.3", features = ["wasm_js"] }
+console_error_panic_hook = "0.1.7"
+web-time = { version = "1.1.0", features = ["serde"] }
 
 [features]
 default = ["watchtower"]
@@ -101,11 +104,14 @@ ckb-testtool = "0.15.1"
 ciborium = "0.2.2"
 ouroboros = "0.18.5"
 futures = "0.3.31"
-cfg-if = "1.0.0"
 
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-jsonrpsee = { version = "0.25", features = ["server-core", "macros", "wasm-client"] }
+jsonrpsee = { version = "0.25", features = [
+    "server-core",
+    "macros",
+    "wasm-client",
+] }
 wasm-bindgen-test = "0.3.50"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

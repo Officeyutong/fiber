@@ -1,3 +1,4 @@
+use crate::platform::SystemTime;
 use ckb_hash::blake2b_256;
 use ckb_types::core::{EpochNumberWithFraction, FeeRate, TransactionView};
 use ckb_types::packed::{Byte32, OutPoint, Script, Transaction};
@@ -21,7 +22,6 @@ use std::future::Future;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::time::SystemTime;
 use tentacle::multiaddr::{MultiAddr, Protocol};
 use tentacle::service::SessionType;
 use tentacle::utils::{extract_peer_id, is_reachable, multiaddr_to_socketaddr};

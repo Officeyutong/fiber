@@ -16,6 +16,7 @@ use crate::gen_rand_fiber_public_key;
 use crate::gen_rand_sha256_hash;
 use crate::invoice::*;
 use crate::now_timestamp_as_millis_u64;
+use crate::platform::SystemTime;
 use crate::store::store_impl::deserialize_from;
 use crate::store::store_impl::serialize_to_vec;
 #[cfg(feature = "watchtower")]
@@ -36,7 +37,6 @@ use musig2::SecNonce;
 use secp256k1::SecretKey;
 use secp256k1::{Keypair, Secp256k1};
 use std::collections::HashMap;
-use std::time::SystemTime;
 
 fn gen_rand_key_pair() -> Keypair {
     let secp = Secp256k1::new();

@@ -956,6 +956,7 @@ fn test_graph_build_route_below_min_tlc_value() {
     assert!(route.is_err());
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[cfg_attr(target_arch = "wasm32", crate::test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 fn test_graph_build_route_select_edge_with_latest_timestamp() {
@@ -999,6 +1000,7 @@ fn test_graph_build_route_select_edge_with_latest_timestamp() {
 
 #[cfg_attr(target_arch = "wasm32", crate::test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg(not(target_arch = "wasm32"))]
 fn test_graph_build_route_select_edge_with_large_capacity() {
     let mut network = MockNetworkGraph::new(3);
     // Add edges with min_tlc_value set to 50

@@ -38,11 +38,20 @@ impl Actor for RootActor {
         (tracker, token): Self::Arguments,
     ) -> impl Future<Output = Result<Self::State, ActorProcessingErr>> + MaybeSend {
         async move {
+            #[cfg(not(target_arch = "wasm32"))]
             tracker.spawn(async move {
                 token.cancelled().await;
                 debug!("Shutting down root actor due to cancellation token");
                 myself.stop(Some("Cancellation token received".to_owned()));
             });
+
+            #[cfg(target_arch = "wasm32")]
+            ractor::concurrency::spawn(async move {
+                token.cancelled().await;
+                debug!("Shutting down root actor due to cancellation token");
+                myself.stop(Some("Cancellation token received".to_owned()));
+            });
+
             Ok(())
         }
     }

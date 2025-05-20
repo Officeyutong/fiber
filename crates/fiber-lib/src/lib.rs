@@ -31,6 +31,8 @@ pub mod tasks;
 
 pub mod utils;
 
+pub(crate) mod platform;
+
 use git_version::git_version;
 
 const GIT_VERSION: &str = git_version!(fallback = "unknown");
@@ -53,8 +55,8 @@ pub fn get_node_prefix() -> &'static str {
 }
 
 pub fn now_timestamp_as_millis_u64() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
+    crate::platform::SystemTime::now()
+        .duration_since(crate::platform::UNIX_EPOCH)
         .expect("Duration since unix epoch")
         .as_millis() as u64
 }
@@ -92,5 +94,5 @@ pub mod macros {
 
 #[cfg(test)]
 pub(crate) use crate::tests::test;
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);

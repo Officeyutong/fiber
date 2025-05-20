@@ -1046,7 +1046,7 @@ where
         allow_self: bool,
         hop_hints: &[HopHint],
     ) -> Result<Vec<RouterHop>, PathFindError> {
-        let started_time = std::time::Instant::now();
+        let started_time = crate::platform::Instant::now();
         let nodes_len = self.nodes.len();
         let route_to_self = source == target;
 

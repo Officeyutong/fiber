@@ -674,7 +674,7 @@ impl InvoiceBuilder {
         };
 
         self.check_attrs_valid()?;
-        let timestamp = std::time::UNIX_EPOCH
+        let timestamp = crate::platform::UNIX_EPOCH
             .elapsed()
             .expect("Duration since unix epoch")
             .as_millis();

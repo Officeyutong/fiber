@@ -53,7 +53,7 @@ async fn test_rpc_basic() {
         .await
         .unwrap();
     assert_eq!(res.channels.len(), 2);
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let payment = node_0
         .send_payment_keysend(&node_1, 1000, false)
@@ -146,7 +146,7 @@ async fn test_rpc_list_peers() {
         .await
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let list_peers: ListPeersResult = node_0.send_rpc_request("list_peers", ()).await.unwrap();
     assert_eq!(list_peers.peers.len(), 0);

@@ -69,19 +69,18 @@ use tentacle::secio::PeerId;
 use thiserror::Error;
 use tokio::sync::oneshot;
 
+use super::types::{ChannelUpdateChannelFlags, ChannelUpdateMessageFlags, UpdateTlcInfo};
 use super::{
     gossip::SOFT_BROADCAST_MESSAGES_CONSIDERED_STALE_DURATION, graph::ChannelUpdateInfo,
     types::ForwardTlcResult,
 };
+use crate::platform::{SystemTime, UNIX_EPOCH};
 use std::future::Future;
 use std::{
     collections::HashSet,
     fmt::{self, Debug, Display},
     sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
 };
-
-use super::types::{ChannelUpdateChannelFlags, ChannelUpdateMessageFlags, UpdateTlcInfo};
 
 // - `empty_witness_args`: 16 bytes, fixed to 0x10000000100000001000000010000000, for compatibility with the xudt
 // - `pubkey`: 32 bytes, x only aggregated public key

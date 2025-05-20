@@ -358,7 +358,7 @@ impl Actor for TlcActor {
         }
     }
 }
-
+#[cfg(not(target_arch = "wasm32"))]
 #[crate::test]
 async fn test_tlc_actor() {
     let (network_actor, _handle) = Actor::spawn(None, NetworkActor {}, ())
@@ -386,7 +386,7 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     network_actor
         .send_message(NetworkActorMessage::AddTlc(
             "peer_a".to_string(),
@@ -402,7 +402,7 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     network_actor
         .send_message(NetworkActorMessage::AddTlc(
             "peer_b".to_string(),
@@ -418,7 +418,7 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     network_actor
         .send_message(NetworkActorMessage::AddTlc(
             "peer_b".to_string(),
@@ -434,13 +434,13 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     // remove tlc from peer_b
     network_actor
         .send_message(NetworkActorMessage::RemoveTlc("peer_b".to_string(), 0))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(1000)).await;
     network_actor
         .send_message(NetworkActorMessage::PeerMsg(
             "peer_a".to_string(),
@@ -448,7 +448,7 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(100)).await;
     network_actor
         .send_message(NetworkActorMessage::PeerMsg(
             "peer_b".to_string(),
@@ -456,7 +456,7 @@ async fn test_tlc_actor() {
         ))
         .unwrap();
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    ractor::concurrency::sleep(tokio::time::Duration::from_millis(2000)).await;
 }
 
 #[cfg_attr(target_arch = "wasm32", crate::test)]
