@@ -16,7 +16,7 @@ bech32 = "0.8"
 rand = "0.8.5"
 serde_json = { version = "1.0" }
 # ckb-sdk = "4.0"
-ckb-sdk = { git = "https://github.com/officeyutong/ckb-sdk-rust", rev = "7144f213a2e9912cec652d86eb10c94c1d0dabef" }
+ckb-sdk = { git = "https://github.com/officeyutong/ckb-sdk-rust", rev = "50e3e2272f95a04f7982241a3a6a29f4f90a4f5f" }
 thiserror = "1.0.58"
 anyhow = "1.0.81"
 futures = "0.3.30"
