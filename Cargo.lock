@@ -172,12 +172,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
-name = "async-iterator"
-version = "2.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742b2f12ff517f144b6181d24f3f2481b503e05650ee79feec1f090048089f88"
-
-[[package]]
 name = "async-stream"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1024,10 +1018,9 @@ dependencies = [
 [[package]]
 name = "ckb-sdk"
 version = "3.7.0"
-source = "git+https://github.com/officeyutong/ckb-sdk-rust?rev=50e3e2272f95a04f7982241a3a6a29f4f90a4f5f#50e3e2272f95a04f7982241a3a6a29f4f90a4f5f"
+source = "git+https://github.com/officeyutong/ckb-sdk-rust?rev=21cee127a47013b10640e3fed9034fe457a7d216#21cee127a47013b10640e3fed9034fe457a7d216"
 dependencies = [
  "anyhow",
- "async-iterator",
  "async-trait",
  "bech32 0.8.1",
  "bitflags 1.3.2",
@@ -1049,7 +1042,6 @@ dependencies = [
  "dyn-clone",
  "enum-repr-derive",
  "futures",
- "getrandom 0.2.16",
  "hex",
  "jsonrpc-core",
  "log",
@@ -1063,8 +1055,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tokio-util",
- "tokio_with_wasm",
- "web-time",
 ]
 
 [[package]]
