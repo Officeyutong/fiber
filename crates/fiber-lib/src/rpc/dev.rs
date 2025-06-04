@@ -250,7 +250,8 @@ impl DevRpcServer for DevRpcServerImpl {
                 &self.ckb_chain_actor,
                 CkbChainMessage::SendTx,
                 DEFAULT_CHAIN_ACTOR_TIMEOUT,
-                tx.clone()
+                tx.clone(),
+                std::time::Instant::now()
             )
             .unwrap()
             {
