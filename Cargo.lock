@@ -1024,7 +1024,7 @@ dependencies = [
 [[package]]
 name = "ckb-sdk"
 version = "3.7.0"
-source = "git+https://github.com/officeyutong/ckb-sdk-rust?rev=a1bd8bb7107d0093d04a012ff5b8a8c7141718c8#a1bd8bb7107d0093d04a012ff5b8a8c7141718c8"
+source = "git+https://github.com/officeyutong/ckb-sdk-rust?rev=7144f213a2e9912cec652d86eb10c94c1d0dabef#7144f213a2e9912cec652d86eb10c94c1d0dabef"
 dependencies = [
  "anyhow",
  "async-iterator",
