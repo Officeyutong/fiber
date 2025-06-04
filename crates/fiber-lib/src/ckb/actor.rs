@@ -194,11 +194,16 @@ impl Actor for CkbChainActor {
                 }
             }
             CkbChainMessage::SendTx(tx, reply_port) => {
+                let start_time = std::time::Instant::now();
                 let rpc_url = state.config.rpc_url.clone();
                 tokio::task::block_in_place(move || {
                     let ckb_client = CkbRpcClient::new(&rpc_url);
                     let result = match ckb_client.send_transaction(tx.data().into(), None) {
-                        Ok(_) => Ok(()),
+                        Ok(_) => {
+                            let elasped = start_time.elapsed();
+                            tracing::info!("From received SendTx to {}",elasped.as_nanos());
+                            Ok(())
+                        },
                         Err(err) => {
                             //FIXME(yukang): RBF or duplicated transaction handling
                             match err {
