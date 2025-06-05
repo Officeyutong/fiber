@@ -976,7 +976,7 @@ version = "0.200.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1df21747b7784762521a7375935c229dd5cc5f555f5f020e57152840134142"
 dependencies = [
- "ckb-system-scripts 0.5.4",
+ "ckb-system-scripts",
  "ckb-types",
  "includedir",
  "includedir_codegen",
@@ -1018,7 +1018,7 @@ dependencies = [
 [[package]]
 name = "ckb-sdk"
 version = "3.7.0"
-source = "git+https://github.com/nervosnetwork/ckb-sdk-rust?rev=21cee127a47013b10640e3fed9034fe457a7d216#21cee127a47013b10640e3fed9034fe457a7d216"
+source = "git+https://github.com/nervosnetwork/ckb-sdk-rust?rev=6490c126440d88c488bd5b177b344b7178c4e696#6490c126440d88c488bd5b177b344b7178c4e696"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1033,8 +1033,6 @@ dependencies = [
  "ckb-mock-tx-types",
  "ckb-resource",
  "ckb-script",
- "ckb-system-scripts 0.5.4",
- "ckb-system-scripts 0.6.0",
  "ckb-traits",
  "ckb-types",
  "dashmap 5.5.3",
@@ -1042,10 +1040,10 @@ dependencies = [
  "dyn-clone",
  "enum-repr-derive",
  "futures",
- "hex",
  "jsonrpc-core",
  "log",
  "lru",
+ "parking_lot",
  "reqwest",
  "secp256k1 0.30.0",
  "serde",
@@ -1062,19 +1060,6 @@ name = "ckb-system-scripts"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa5c59063142de7a68cfad4449c6b3863563856219a2925dfb8c5f019ec2aa47"
-dependencies = [
- "blake2b-rs",
- "faster-hex",
- "includedir",
- "includedir_codegen",
- "phf",
-]
-
-[[package]]
-name = "ckb-system-scripts"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47bf86cbf4b6c1bfcfecb2ae4d2ade984828ca0727db22b4184d4f3b2f87d783"
 dependencies = [
  "blake2b-rs",
  "faster-hex",
