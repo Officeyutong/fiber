@@ -133,6 +133,7 @@ jsonrpsee = {version = "0.25.1", features = ["server", "macros", "http-client"]}
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.50"
+wasm-logger = "0.2.0"
 
 [lints.clippy]
 expect-fun-call = "allow"

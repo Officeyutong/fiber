@@ -5374,7 +5374,7 @@ async fn test_network_cancel_error_handling() {
     }
 
     for i in 0..3 {
-        let network_name = format!("network actor at {}", nodes[i].base_dir.to_str());
+        let network_name = format!("network actor at {:?}", nodes[i].node_name);
         assert!(
             registry::where_is(network_name).is_some(),
             "Network actor should be registered"
@@ -5386,7 +5386,7 @@ async fn test_network_cancel_error_handling() {
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     for i in 0..3 {
-        let network_name = format!("network actor at {}", nodes[i].base_dir.to_str());
+        let network_name = format!("network actor at {:?}", nodes[i].node_name);
         assert!(
             registry::where_is(network_name).is_none(),
             "Network actor should be removed"

@@ -2169,6 +2169,7 @@ dependencies = [
  "tracing-subscriber",
  "wasm-bindgen",
  "wasm-bindgen-test",
+ "wasm-logger",
  "web-sys",
  "web-time",
 ]

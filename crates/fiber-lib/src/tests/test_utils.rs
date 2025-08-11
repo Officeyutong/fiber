@@ -66,7 +66,6 @@ use tokio::sync::RwLock as TokioRwLock;
 use tokio::{
     select,
     sync::{mpsc, OnceCell},
-    time::sleep,
 };
 use tracing::debug;
 use tracing::error;
@@ -223,6 +222,7 @@ pub fn generate_store() -> (Store, ()) {
 #[derive(Debug)]
 pub struct NetworkNode {
     /// The base directory of the node, will be deleted after this struct dropped.
+    #[cfg(not(target_arch = "wasm32"))]
     pub base_dir: Arc<TempDir>,
     pub node_name: Option<String>,
     pub store: Store,
@@ -249,6 +249,7 @@ pub struct NetworkNode {
 }
 
 pub struct NetworkNodeConfig {
+    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Arc<TempDir>,
     node_name: Option<String>,
     store: Store,
@@ -265,6 +266,7 @@ impl NetworkNodeConfig {
 }
 
 pub struct NetworkNodeConfigBuilder {
+    #[cfg(not(target_arch = "wasm32"))]
     base_dir: Option<Arc<TempDir>>,
     node_name: Option<String>,
     rpc_config: Option<RpcConfig>,
@@ -284,6 +286,7 @@ impl Default for NetworkNodeConfigBuilder {
 impl NetworkNodeConfigBuilder {
     pub fn new() -> Self {
         Self {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir: None,
             node_name: None,
             rpc_config: None,
@@ -291,14 +294,17 @@ impl NetworkNodeConfigBuilder {
             mock_chain_actor_middleware: None,
         }
     }
-
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn base_dir(mut self, base_dir: Arc<TempDir>) -> Self {
         self.base_dir = Some(base_dir);
         self
     }
-
+    #[allow(unused)]
     pub fn base_dir_prefix(self, prefix: &str) -> Self {
-        self.base_dir(Arc::new(TempDir::new(prefix)))
+        #[cfg(not(target_arch = "wasm32"))]
+        return self.base_dir(Arc::new(TempDir::new(prefix)));
+        #[cfg(target_arch = "wasm32")]
+        return self;
     }
 
     pub fn node_name(mut self, node_name: Option<String>) -> Self {
@@ -328,6 +334,7 @@ impl NetworkNodeConfigBuilder {
     }
 
     pub fn build(self) -> NetworkNodeConfig {
+        #[cfg(not(target_arch = "wasm32"))]
         let base_dir = self
             .base_dir
             .clone()
@@ -341,11 +348,24 @@ impl NetworkNodeConfigBuilder {
             .take(5)
             .map(char::from)
             .collect();
-        let rand_db_dir = Path::new(base_dir.to_str()).join(rand_name);
-        let store = Store::new(rand_db_dir).expect("create store");
+        let (store, _tmpdir) = generate_store();
+        #[cfg(not(target_arch = "wasm32"))]
         let fiber_config = get_fiber_config(base_dir.as_ref(), node_name.as_deref());
+        #[cfg(target_arch = "wasm32")]
+        let fiber_config = {
+            let mut cfg = get_fiber_config(Path::new("/wasm"), node_name.as_deref());
+            cfg.wasm_key_pair = Some(crate::fiber::KeyPair::generate_random_key());
+            // Set some announced addrs on wasm. There is no announced addrs by default on wasm
+            cfg.announced_addrs = vec![String::from("/dns4/127.0.0.1/tcp/8228/ws")];
+            cfg
+        };
+
         let ckb_config = if self.rpc_config.is_some() {
+            #[cfg(not(target_arch = "wasm32"))]
             let ckb_dir = Path::new(base_dir.to_str()).join("ckb");
+            #[cfg(target_arch = "wasm32")]
+            let ckb_dir = Path::new("/wasm").join("ckb");
+
             Some(CkbConfig {
                 base_dir: Some(ckb_dir),
                 rpc_url: "http://localhost:8114".to_string(),
@@ -359,6 +379,7 @@ impl NetworkNodeConfigBuilder {
         };
         let rpc_config = self.rpc_config;
         let mut config = NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             ckb_config,
             node_name,
@@ -1062,7 +1083,7 @@ impl NetworkNode {
                 return;
             }
             on_unexpected(status);
-            tokio::time::sleep(Duration::from_millis(500)).await;
+            ractor::concurrency::sleep(Duration::from_millis(500)).await;
         }
         panic!(
             "{}: {:?}, current status: {:?}",
@@ -1156,7 +1177,7 @@ impl NetworkNode {
                 }),
             ))
             .expect("network actor is live");
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        ractor::concurrency::sleep(Duration::from_millis(200)).await;
     }
 
     pub async fn update_channel_local_balance(
@@ -1286,6 +1307,7 @@ impl NetworkNode {
 
     pub async fn new_with_config(config: NetworkNodeConfig) -> Self {
         let NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1294,7 +1316,7 @@ impl NetworkNode {
             rpc_config,
             mock_chain_actor_middleware,
         } = config;
-
+        // #[cfg(not(target_arch = "wasm32"))]
         let _span = tracing::info_span!("NetworkNode", node_name = &node_name).entered();
 
         let root = get_test_root_actor().await;
@@ -1321,9 +1343,17 @@ impl NetworkNode {
             pubkey,
             true,
         )));
+        #[cfg(not(target_arch = "wasm32"))]
+        let actor_name = format!("network actor at {}", base_dir.to_str());
+
+        #[cfg(target_arch = "wasm32")]
+        let actor_name = format!(
+            "network actor with randnum {}",
+            rand::thread_rng().gen::<u64>()
+        );
 
         let network_actor = Actor::spawn_linked(
-            Some(format!("network actor at {}", base_dir.to_str())),
+            Some(actor_name),
             NetworkActor::new(
                 event_sender,
                 chain_actor.clone(),
@@ -1348,7 +1378,7 @@ impl NetworkNode {
                 Some(NetworkServiceEvent::NetworkStarted(peer_id, listening_addr, announced_addrs)) = event_receiver.recv() => {
                     break (peer_id, listening_addr, announced_addrs);
                 }
-                _ = sleep(Duration::from_secs(5)) => {
+                _ = ractor::concurrency::sleep(Duration::from_secs(5)) => {
                     panic!("Failed to start network actor");
                 }
             }
@@ -1373,7 +1403,7 @@ impl NetworkNode {
         let unexpected_events_clone = unexpected_events.clone();
         let triggered_unexpected_events_clone = triggered_unexpected_events.clone();
         // spawn a new thread to collect all the events from event_receiver
-        tokio::spawn(async move {
+        ractor::concurrency::spawn(async move {
             while let Some(event) = event_receiver.recv().await {
                 self_event_sender
                     .send(event.clone())
@@ -1392,11 +1422,14 @@ impl NetworkNode {
             }
         });
 
+        #[cfg(not(target_arch = "wasm32"))]
         info!(
             "Network node started for peer_id {:?} in directory {:?}",
             &peer_id,
             base_dir.as_ref()
         );
+        #[cfg(target_arch = "wasm32")]
+        info!("Network node started for peer_id {:?} ", &peer_id,);
 
         let gossip_actor = ractor::registry::where_is(get_gossip_actor_name(&peer_id))
             .expect("gossip actor should have been started")
@@ -1425,6 +1458,7 @@ impl NetworkNode {
         };
 
         Self {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir,
             node_name,
             store,
@@ -1453,6 +1487,7 @@ impl NetworkNode {
 
     pub fn get_node_config(&self) -> NetworkNodeConfig {
         NetworkNodeConfig {
+            #[cfg(not(target_arch = "wasm32"))]
             base_dir: self.base_dir.clone(),
             node_name: self.node_name.clone(),
             store: self.store.clone(),
@@ -1527,7 +1562,7 @@ impl NetworkNode {
         // If we start the node immediately, other nodes may deem our new connection
         // as a duplicate connection and report RepeatedConnection error.
         // And we will receive `ProtocolSelectError` error from tentacle.
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_secs(1)).await;
         tracing::debug!("Node stopped, restarting");
         self.start().await;
     }
@@ -1650,7 +1685,7 @@ impl NetworkNode {
                         }
                     }
                 }
-                _ = sleep(Duration::from_secs(5)) => {
+                _ = ractor::concurrency::sleep(Duration::from_secs(5)) => {
                     panic!("Waiting for event timeout");
                 }
             }
@@ -1787,7 +1822,7 @@ pub async fn create_mock_chain_actor() -> ActorRef<CkbChainMessage> {
 pub async fn wait_for_network_graph_update(node: &NetworkNode, channels: usize) {
     // sleep for a while to make sure network graph is updated
     for _ in 0..50 {
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         if node.get_network_graph_channels().await.len() >= channels {
             break;
         }
@@ -1807,9 +1842,9 @@ pub async fn wait_for_network_graph_update(node: &NetworkNode, channels: usize) 
 }
 
 pub async fn wait_until_timeout<F: Fn() -> bool>(max_wait_time: u64, f: F) {
-    let start = tokio::time::Instant::now();
+    let start = crate::time::Instant::now();
     while !f() {
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        ractor::concurrency::sleep(tokio::time::Duration::from_millis(500)).await;
         if start.elapsed().as_millis() > max_wait_time as u128 {
             panic!("Wait timeout after {}ms", max_wait_time);
         }

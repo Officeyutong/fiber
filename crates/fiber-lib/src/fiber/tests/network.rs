@@ -159,6 +159,7 @@ async fn test_set_announced_addrs_with_valid_peer_id() {
     let peer_id = node.get_peer_id();
     let addr = format!("/ip4/1.1.1.1/tcp/8346/p2p/{}", peer_id);
     let multiaddr = Multiaddr::from_str(&addr).expect("valid multiaddr");
+    #[cfg(not(target_arch = "wasm32"))]
     let mut node = NetworkNode::new_with_config(
         NetworkNodeConfigBuilder::new()
             .base_dir(node.base_dir.clone())
@@ -168,6 +169,16 @@ async fn test_set_announced_addrs_with_valid_peer_id() {
             .build(),
     )
     .await;
+    #[cfg(target_arch = "wasm32")]
+    let mut node = NetworkNode::new_with_config(
+        NetworkNodeConfigBuilder::new()
+            .fiber_config_updater(move |config| {
+                config.announced_addrs = vec![addr.clone()];
+            })
+            .build(),
+    )
+    .await;
+
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     node.stop().await;
     let nodes = node.get_network_graph_nodes().await;
