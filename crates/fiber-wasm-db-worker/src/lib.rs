@@ -136,7 +136,8 @@ pub async fn main_loop(log_level: &str) {
                 };
             }
             InputCommand::Shutdown => break,
-            InputCommand::Waiting | InputCommand::PrefixIteratorResponse => unreachable!(),
+            InputCommand::Waiting => continue,
+            InputCommand::PrefixIteratorResponse => unreachable!(),
         }
     }
     info!("Db worker main loop exited");
