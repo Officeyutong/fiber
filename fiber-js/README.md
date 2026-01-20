@@ -73,9 +73,7 @@ fiber:
             dep_type: code
 
 rpc:
-  # By default RPC only binds to localhost, thus it only allows accessing from the same machine.
-  # Allowing arbitrary machines to access the JSON-RPC port is dangerous and strongly discouraged.
-  # Please strictly limit the access to only trusted machines.
+  # HTTP RPC is not uspported on wasm, so this option can be set to arbitary value
   listening_addr: "127.0.0.1:8227"
 
 ckb:
@@ -148,9 +146,7 @@ fiber:
             dep_type: code
 
 rpc:
-  # By default RPC only binds to localhost, thus it only allows accessing from the same machine.
-  # Allowing arbitrary machines to access the JSON-RPC port is dangerous and strongly discouraged.
-  # Please strictly limit the access to only trusted machines.
+  # HTTP RPC is not uspported on wasm, so this option can be set to arbitary value
   listening_addr: "127.0.0.1:8227"
 
 ckb:
