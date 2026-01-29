@@ -1,5 +1,5 @@
 use ckb_hash::blake2b_256;
-use ckb_types::{core::TransactionView, prelude::*};
+use ckb_types::{core::TransactionView, packed::CellDepVec, prelude::*};
 
 /// Empty cell_deps before compute transaction's signing message,
 /// to maintain signature validity during script upgrades.
