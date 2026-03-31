@@ -118,7 +118,6 @@ sqlite = ["fiber-store/sqlite"]
 watchtower = []
 metrics = ["dep:metrics", "tentacle/metrics", "tokio-metrics", "metrics-exporter-prometheus"]
 pprof = ["dep:pprof"]
-watchtower = []
 
 [dev-dependencies]
 ciborium = "0.2.2"
