@@ -3,7 +3,7 @@ use std::{io::Write, path::PathBuf, str::FromStr};
 fn main() {
     let rpc_dir = PathBuf::from_str(env!("CARGO_MANIFEST_DIR"))
         .unwrap()
-        .join("../crates/fiber-lib/src/rpc");
+        .join("../../crates/fiber-lib/src/rpc");
     let rpc_files = vec![
         ["cch.rs", "CchRpc"],
         ["channel.rs", "ChannelRpc"],
